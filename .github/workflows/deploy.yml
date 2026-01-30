@@ -1,4 +1,3 @@
-
 name: Deploy Editor to GitHub Pages
 
 on:
@@ -24,6 +23,20 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+
+      # ===== Build Step =====
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Project
+        run: npm run build
+      # ===========================
       
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -31,9 +44,8 @@ jobs:
       - name: Upload Editor Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # This deploys the entire root (Editor + Assets) to GH Pages.
-          # Users can then visit your-username.github.io/repo-name to use the tool.
-          path: '.'
+          # CHANGED: Deploy the built output, not the root
+          path: './dist'
           
       - name: Deploy to GitHub Pages
         id: deployment
