@@ -1,0 +1,5 @@
+{
+  "name": "Polybius",
+  "description": "A digital humanities static site generator that transforms historical CSV datasets into immersive scrollytelling experiences with rich visualizations like timelines, maps, and networks.",
+  "requestFramePermissions": []
+}

@@ -1,0 +1,47 @@
+
+export type ThemeType = 'classic' | 'parchment' | 'academic' | 'dark';
+
+export enum CardType {
+  TIMELINE = 'TIMELINE',
+  MAP = 'MAP',
+  NETWORK = 'NETWORK',
+  STATISTICS = 'STATISTICS',
+  GALLERY = 'GALLERY'
+}
+
+export interface BibliographyEntry {
+  id: string;
+  text: string;
+  url?: string;
+}
+
+export interface Section {
+  id: string;
+  title: string;
+  content: string;
+  cardType: CardType;
+  config: Record<string, any>;
+}
+
+export interface SiteConfig {
+  title: string;
+  subtitle: string;
+  author: string;
+  collaborators: string;
+  bibliography: BibliographyEntry[];
+  theme: ThemeType;
+  sections: Section[];
+}
+
+export interface HeritageDataItem {
+  id: string | number;
+  label: string;
+  date?: string | number;
+  latitude?: number;
+  longitude?: number;
+  category?: string;
+  description?: string;
+  imageUrl?: string;
+  connections?: string[]; // IDs of related items
+  [key: string]: any;
+}
