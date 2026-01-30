@@ -140,9 +140,9 @@ Note: This bundle uses CDN dependencies (Tailwind, React, Leaflet) and requires 
       <div className="fixed top-0 left-0 right-0 h-12 bg-white border-b border-zinc-200 flex items-center justify-between px-4 z-50">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 bg-indigo-600 rounded rotate-45 flex items-center justify-center">
-            <span className="text-white text-[10px] font-bold -rotate-45">CW</span>
+            <span className="text-white text-[10px] font-bold -rotate-45">P</span>
           </div>
-          <span className="font-bold text-sm tracking-tight">Chronos Weaver</span>
+          <span className="font-bold text-sm tracking-tight">Polybius SSG</span>
           <span className="text-[10px] bg-zinc-100 px-2 py-0.5 rounded font-mono text-zinc-400">Editor v1.0</span>
         </div>
         

@@ -5,6 +5,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Polybius - Historical Scrollytelling SSG</title>
+    
+    <!-- Dynamic Base Path for GitHub Pages Subfolders -->
+    <script>
+      (function() {
+        const path = window.location.pathname;
+        const isGhPages = window.location.hostname.includes('github.io');
+        if (isGhPages) {
+          // Extracts the repository name from the first path segment
+          const repo = path.split('/')[1];
+          if (repo && repo !== '' && !repo.includes('.')) {
+            const base = document.createElement('base');
+            base.href = '/' + repo + '/';
+            document.head.appendChild(base);
+          }
+        }
+      })();
+    </script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
     
