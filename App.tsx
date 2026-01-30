@@ -1,9 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
-import { SiteConfig, HeritageDataItem } from './types';
-import { INITIAL_CONFIG, SAMPLE_DATA } from './constants';
-import Editor from './components/Editor';
-import Viewer from './components/Viewer';
+import { SiteConfig, HeritageDataItem } from './types.ts';
+import { INITIAL_CONFIG, SAMPLE_DATA } from './constants.tsx';
+import Editor from './components/Editor.tsx';
+import Viewer from './components/Viewer.tsx';
 import { Package, CheckCircle2, Loader2, Github, X, Download } from 'lucide-react';
 // @ts-ignore
 import JSZip from 'https://esm.sh/jszip';
@@ -17,8 +17,8 @@ const App: React.FC = () => {
 
   // Load from local storage if available
   useEffect(() => {
-    const saved = localStorage.getItem('chronos_config');
-    const savedData = localStorage.getItem('chronos_data');
+    const saved = localStorage.getItem('chronos_weaver_config');
+    const savedData = localStorage.getItem('chronos_weaver_data');
     if (saved) {
       try {
         setConfig(JSON.parse(saved));
@@ -37,12 +37,12 @@ const App: React.FC = () => {
 
   const handleSave = (newConfig: SiteConfig) => {
     setConfig(newConfig);
-    localStorage.setItem('chronos_config', JSON.stringify(newConfig));
+    localStorage.setItem('chronos_weaver_config', JSON.stringify(newConfig));
   };
 
   const handleDataUpdate = (newData: HeritageDataItem[]) => {
     setData(newData);
-    localStorage.setItem('chronos_data', JSON.stringify(newData));
+    localStorage.setItem('chronos_weaver_data', JSON.stringify(newData));
   };
 
   const handleGenerate = async () => {
@@ -109,7 +109,7 @@ const App: React.FC = () => {
           dark: { bg: 'bg-zinc-950', text: 'text-zinc-100', accent: 'bg-amber-500', font: 'font-sans', card: 'bg-zinc-900 border-zinc-800' }
         };
 
-        // --- SUB-COMPONENTS (Visualizations) ---
+        // --- SUB-COMPONENTS ---
         const TimelineView = ({ data, config, theme }) => {
             const dateKey = config.dateKey || 'date';
             const labelKey = config.labelKey || 'label';
@@ -227,7 +227,6 @@ const App: React.FC = () => {
                 React.createElement('h3', { className: "text-xl font-bold mb-8 uppercase opacity-60" }, "Relational Network"),
                 React.createElement('div', { className: "flex-1 relative overflow-hidden bg-current/5 rounded-2xl" }, 
                     React.createElement('svg', { viewBox: "0 0 400 300", className: "w-full h-full" }, [
-                        // Lines
                         ...data.flatMap((item, idx) => {
                             const angle = (idx / data.length) * Math.PI * 2;
                             const x = centerX + radius * Math.cos(angle);
@@ -240,27 +239,16 @@ const App: React.FC = () => {
                                 const tAngle = (targetIdx / data.length) * Math.PI * 2;
                                 const tx = centerX + radius * Math.cos(tAngle);
                                 const ty = centerY + radius * Math.sin(tAngle);
-                                return React.createElement('line', { 
-                                    key: item.id + '-' + targetId, 
-                                    x1: x, y1: y, x2: tx, y2: ty, 
-                                    stroke: "currentColor", strokeWidth: 1, className: "opacity-20" 
-                                });
+                                return React.createElement('line', { key: item.id + '-' + targetId, x1: x, y1: y, x2: tx, y2: ty, stroke: "currentColor", strokeWidth: 1, className: "opacity-20" });
                             });
                         }),
-                        // Nodes
                         ...data.map((item, idx) => {
                             const angle = (idx / data.length) * Math.PI * 2;
                             const x = centerX + radius * Math.cos(angle);
                             const y = centerY + radius * Math.sin(angle);
                             return React.createElement('g', { key: idx, className: "group" }, [
-                                React.createElement('circle', { 
-                                    cx: x, cy: y, r: 10, 
-                                    fill: "#4f46e5", className: "transition-transform group-hover:scale-125 shadow" 
-                                }),
-                                React.createElement('text', { 
-                                    x: x, y: y + 20, fontSize: 8, textAnchor: "middle", 
-                                    className: "fill-current font-bold" 
-                                }, item[labelKey])
+                                React.createElement('circle', { cx: x, cy: y, r: 10, fill: "#4f46e5", className: "transition-transform group-hover:scale-125 shadow" }),
+                                React.createElement('text', { x: x, y: y + 20, fontSize: 8, textAnchor: "middle", className: "fill-current font-bold" }, item[labelKey])
                             ]);
                         })
                     ])
@@ -268,7 +256,7 @@ const App: React.FC = () => {
             ]);
         };
 
-        // --- MAIN VIEWER ---
+        // --- VIEWER ENGINE ---
         const Viewer = ({ config, data }) => {
             const theme = THEMES[config.theme] || THEMES.classic;
             const [activeId, setActiveId] = useState(config.sections[0]?.id || '');
@@ -296,7 +284,6 @@ const App: React.FC = () => {
             };
 
             return React.createElement('div', { className: "min-h-screen transition-colors duration-700 " + theme.bg + " " + theme.text + " " + theme.font }, [
-                // Header
                 React.createElement('header', { className: "h-[70vh] flex flex-col items-center justify-center text-center px-6" }, [
                     React.createElement('h1', { className: "text-5xl md:text-7xl font-bold mb-4 tracking-tight" }, config.title),
                     React.createElement('p', { className: "text-xl md:text-2xl opacity-80 italic max-w-2xl" }, config.subtitle),
@@ -305,35 +292,25 @@ const App: React.FC = () => {
                         React.createElement('span', { className: "text-lg font-medium border-b border-current" }, config.author)
                     ])
                 ]),
-                // Scrolly Side-by-Side
                 React.createElement('div', { className: "relative flex flex-col md:flex-row" }, [
                     React.createElement('div', { className: "w-full md:w-1/2 px-6 pb-20" }, config.sections.map(s => 
-                        React.createElement('div', { 
-                            key: s.id, 
-                            ref: el => sectionRefs.current[s.id] = el,
-                            'data-id': s.id,
-                            className: "min-h-[80vh] flex items-center justify-center py-20 transition-opacity duration-500 " + (activeId === s.id ? 'opacity-100' : 'opacity-20')
-                        }, React.createElement('div', { className: "max-w-lg p-8 rounded-2xl shadow-xl border " + theme.card }, [
-                            React.createElement('h2', { className: "text-3xl font-bold mb-6" }, s.title),
-                            React.createElement('p', { className: "text-lg leading-relaxed whitespace-pre-wrap" }, s.content)
-                        ]))
+                        React.createElement('div', { key: s.id, ref: el => sectionRefs.current[s.id] = el, 'data-id': s.id, className: "min-h-[80vh] flex items-center justify-center py-20 transition-opacity duration-500 " + (activeId === s.id ? 'opacity-100' : 'opacity-20') }, 
+                            React.createElement('div', { className: "max-w-lg p-8 rounded-2xl shadow-xl border " + theme.card }, [
+                                React.createElement('h2', { className: "text-3xl font-bold mb-6" }, s.title),
+                                React.createElement('p', { className: "text-lg leading-relaxed whitespace-pre-wrap" }, s.content)
+                            ])
+                        )
                     )),
-                    // Sticky Viz
                     React.createElement('div', { className: "hidden md:block w-1/2 h-screen sticky top-0" }, 
                         React.createElement('div', { className: "h-full p-8 flex items-center justify-center" }, 
                             React.createElement('div', { className: "w-full h-[85vh] rounded-3xl overflow-hidden shadow-2xl border bg-white relative " + theme.card }, 
                                 React.createElement(AnimatePresence, { mode: 'wait' }, 
-                                    activeSection && React.createElement(motion.div, { 
-                                        key: activeId, 
-                                        initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 },
-                                        className: "absolute inset-0"
-                                    }, renderViz())
+                                    activeSection && React.createElement(motion.div, { key: activeId, initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, className: "absolute inset-0" }, renderViz())
                                 )
                             )
                         )
                     )
                 ]),
-                // Footer
                 React.createElement('footer', { className: "py-20 text-center border-t border-current/10 opacity-60" }, [
                     React.createElement('h2', { className: "text-2xl font-bold" }, config.title),
                     React.createElement('p', { className: "text-xs mt-2 uppercase tracking-widest" }, "Powered by Chronos Weaver")
@@ -341,16 +318,11 @@ const App: React.FC = () => {
             ]);
         };
 
-        // --- BOOTSTRAP ---
         const App = () => {
             const [payload, setPayload] = useState(null);
             useEffect(() => {
-                fetch('./site-data.json')
-                    .then(r => r.json())
-                    .then(data => setPayload(data))
-                    .catch(e => console.error("Could not load project data", e));
+                fetch('./site-data.json').then(r => r.json()).then(data => setPayload(data)).catch(e => console.error("Could not load project data", e));
             }, []);
-            
             if (!payload) return React.createElement('div', { className: "h-screen flex items-center justify-center" }, "Assembling Archives...");
             return React.createElement(Viewer, { config: payload.config, data: payload.data });
         };
@@ -362,23 +334,7 @@ const App: React.FC = () => {
 </html>`;
 
       zip.file("index.html", viewerHtml);
-      zip.file("README.txt", `CHRONOS WEAVER STANDALONE EXPORT
-================================
-Generated: ${new Date().toLocaleString()}
-Project: ${config.title}
-
-THIS SITE IS NOW STANDALONE.
-
-HOW TO USE:
-1. Extract this ZIP.
-2. Upload all files (index.html, site-data.json) to any static web host.
-3. Your site will automatically load your data and render the scrollytelling interface.
-
-TECHNOLOGY:
-- Uses React 19 via ESM.sh
-- Visualizations powered by Recharts & Leaflet
-- Animations by Framer Motion
-- No local build step required.`);
+      zip.file("README.txt", `CHRONOS WEAVER STANDALONE EXPORT\nGenerated: ${new Date().toLocaleString()}`);
 
       const content = await zip.generateAsync({ type: "blob" });
       const url = URL.createObjectURL(content);
@@ -396,112 +352,35 @@ TECHNOLOGY:
     } catch (err) {
       console.error("Export failed:", err);
       setIsGenerating(false);
-      alert("Export failed. See console for details.");
+      alert("Export failed.");
     }
   };
 
   return (
     <div className="min-h-screen bg-zinc-50 font-sans text-zinc-900">
-      {/* Utility Bar */}
       <div className="fixed top-0 left-0 right-0 h-12 bg-white border-b border-zinc-200 flex items-center justify-between px-4 z-50">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 bg-indigo-600 rounded rotate-45 flex items-center justify-center">
             <span className="text-white text-[10px] font-bold -rotate-45">CW</span>
           </div>
           <span className="font-bold text-sm tracking-tight">Chronos Weaver</span>
-          <span className="text-[10px] bg-zinc-100 px-2 py-0.5 rounded font-mono text-zinc-400">Editor v1.0</span>
         </div>
         
         <div className="flex items-center gap-4">
           <div className="flex items-center bg-zinc-100 p-1 rounded-lg">
-            <button 
-              onClick={() => setMode('edit')}
-              className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
-                mode === 'edit' ? 'bg-white text-indigo-600 shadow-sm' : 'text-zinc-500 hover:text-zinc-800'
-              }`}
-            >
-              Editor
-            </button>
-            <button 
-              onClick={() => setMode('preview')}
-              className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
-                mode === 'preview' ? 'bg-white text-indigo-600 shadow-sm' : 'text-zinc-500 hover:text-zinc-800'
-              }`}
-            >
-              Preview
-            </button>
+            <button onClick={() => setMode('edit')} className={`px-3 py-1 text-xs font-medium rounded-md ${mode === 'edit' ? 'bg-white text-indigo-600 shadow-sm' : 'text-zinc-500'}`}>Editor</button>
+            <button onClick={() => setMode('preview')} className={`px-3 py-1 text-xs font-medium rounded-md ${mode === 'preview' ? 'bg-white text-indigo-600 shadow-sm' : 'text-zinc-500'}`}>Preview</button>
           </div>
 
-          <div className="h-6 w-px bg-zinc-200 mx-1" />
-
-          <button 
-            onClick={handleGenerate}
-            disabled={isGenerating}
-            className={`flex items-center gap-2 px-4 py-1.5 text-xs font-bold rounded-lg transition-all shadow-sm ${
-              showSuccess 
-                ? 'bg-emerald-500 text-white' 
-                : 'bg-indigo-600 text-white hover:bg-indigo-700 active:scale-95'
-            } disabled:opacity-50 disabled:cursor-allowed`}
-          >
-            {isGenerating ? (
-              <>
-                <Loader2 size={14} className="animate-spin" />
-                Bundling...
-              </>
-            ) : showSuccess ? (
-              <>
-                <CheckCircle2 size={14} />
-                Export Success
-              </>
-            ) : (
-              <>
-                <Package size={14} />
-                Generate Site
-              </>
-            )}
+          <button onClick={handleGenerate} disabled={isGenerating} className={`flex items-center gap-2 px-4 py-1.5 text-xs font-bold rounded-lg transition-all shadow-sm ${showSuccess ? 'bg-emerald-500 text-white' : 'bg-indigo-600 text-white hover:bg-indigo-700'} disabled:opacity-50`}>
+            {isGenerating ? <Loader2 size={14} className="animate-spin" /> : showSuccess ? <CheckCircle2 size={14} /> : <Package size={14} />}
+            {isGenerating ? 'Bundling...' : showSuccess ? 'Export Success' : 'Generate Site'}
           </button>
         </div>
       </div>
 
-      {/* Success Notification Toast */}
-      {showSuccess && (
-        <div className="fixed top-14 right-4 z-[100] bg-white border border-emerald-100 shadow-2xl p-5 rounded-2xl max-w-sm animate-in fade-in slide-in-from-top-4 duration-500">
-           <div className="flex items-start gap-4">
-             <div className="bg-emerald-100 p-2.5 rounded-xl text-emerald-600">
-                <Download size={24} />
-             </div>
-             <div className="flex-1">
-               <div className="flex items-center justify-between mb-1">
-                 <h4 className="font-bold text-sm text-zinc-900">Project Exported</h4>
-                 <button onClick={() => setShowSuccess(false)} className="text-zinc-400 hover:text-zinc-600">
-                   <X size={14} />
-                 </button>
-               </div>
-               <p className="text-xs text-zinc-500 leading-relaxed mb-3">
-                 Your portable site ZIP is ready. It contains the standalone HTML viewer and your historical datasets.
-               </p>
-               <div className="flex items-center gap-2 px-2 py-1.5 bg-zinc-50 rounded-lg border border-zinc-100">
-                 <Github size={12} className="text-zinc-400" />
-                 <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
-                   GitHub Actions Deployed Editor
-                 </span>
-               </div>
-             </div>
-           </div>
-        </div>
-      )}
-
       <div className="pt-12">
-        {mode === 'edit' ? (
-          <Editor 
-            config={config} 
-            data={data}
-            onConfigChange={handleSave} 
-            onDataChange={handleDataUpdate}
-          />
-        ) : (
-          <Viewer config={config} data={data} />
-        )}
+        {mode === 'edit' ? <Editor config={config} data={data} onConfigChange={handleSave} onDataChange={handleDataUpdate} /> : <Viewer config={config} data={data} />}
       </div>
     </div>
   );
