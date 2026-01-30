@@ -9,7 +9,7 @@ import ChartView from './visualizations/ChartView.tsx';
 import ImageView from './visualizations/ImageView.tsx';
 import SingleImageView from './visualizations/SingleImageView.tsx';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ExternalLink, Users, BookOpen } from 'lucide-react';
+import { ExternalLink, Users, BookOpen, ChevronDown } from 'lucide-react';
 
 interface ViewerProps {
   config: SiteConfig;
@@ -65,20 +65,30 @@ const Viewer: React.FC<ViewerProps> = ({ config, data }) => {
 
   return (
     <div className={`min-h-screen ${theme.bg} ${theme.text} ${theme.font} transition-colors duration-700`}>
+      <style>{`::selection { background-color: ${theme.accentHex}33; }`}</style>
       {/* Header */}
       <header className="h-[70vh] flex flex-col items-center justify-center text-center px-6 relative overflow-hidden">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1 }}
           className="z-10"
         >
           <h1 className="text-5xl md:text-7xl font-bold mb-4 tracking-tight leading-tight">{config.title}</h1>
+          <div className="h-1 w-24 rounded-full mx-auto mt-2 mb-6" style={{ backgroundColor: theme.accentHex }} />
           <p className="text-xl md:text-2xl opacity-80 mb-8 max-w-2xl mx-auto italic">{config.subtitle}</p>
           <div className="flex flex-col items-center gap-2">
             <span className="text-sm font-bold tracking-widest uppercase opacity-60">Authored by</span>
             <span className="text-lg font-medium underline underline-offset-8 decoration-1 decoration-current/30">{config.author}</span>
           </div>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.5, duration: 1 }}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2"
+        >
+          <ChevronDown size={24} className="animate-bounce opacity-40" />
         </motion.div>
       </header>
 
@@ -103,8 +113,8 @@ const Viewer: React.FC<ViewerProps> = ({ config, data }) => {
                     activeSectionId === section.id ? 'opacity-100' : 'opacity-20'
                   }`}
                 >
-                  <div className={`max-w-4xl w-full p-12 rounded-2xl shadow-xl border ${theme.card} backdrop-blur-sm ${textAlignClass}`}>
-                    <h2 className="text-3xl font-bold mb-6 border-b pb-2 inline-block border-current/20">
+                  <div className={`w-full p-12 rounded-2xl border border-t-4 ${theme.card} ${theme.cardShadow} backdrop-blur-sm ${textAlignClass}`} style={{ borderTopColor: theme.accentHex }}>
+                    <h2 className={`text-3xl font-bold mb-6 border-b pb-2 inline-block border-current/20 ${theme.headingColor}`}>
                       {section.title}
                     </h2>
                     <p className="text-xl leading-relaxed whitespace-pre-wrap opacity-90">
@@ -124,8 +134,8 @@ const Viewer: React.FC<ViewerProps> = ({ config, data }) => {
                 activeSectionId === section.id ? 'opacity-100' : 'opacity-20'
               }`}
             >
-              <div className={`max-w-lg p-8 rounded-2xl shadow-xl border ${theme.card} backdrop-blur-sm`}>
-                <h2 className="text-3xl font-bold mb-6 border-b pb-2 inline-block border-current/20">
+              <div className={`max-w-lg p-8 rounded-2xl border border-t-4 ${theme.card} ${theme.cardShadow} backdrop-blur-sm`} style={{ borderTopColor: theme.accentHex }}>
+                <h2 className={`text-3xl font-bold mb-6 border-b pb-2 inline-block border-current/20 ${theme.headingColor}`}>
                   {section.title}
                 </h2>
                 <p className="text-lg leading-relaxed whitespace-pre-wrap opacity-90">
@@ -169,7 +179,7 @@ const Viewer: React.FC<ViewerProps> = ({ config, data }) => {
         {/* Sticky Visualization */}
         <div className={`hidden md:block w-1/2 h-screen sticky top-0 right-0 overflow-hidden pointer-events-none md:pointer-events-auto transition-all duration-700 ${isTextActive ? 'opacity-0 w-0 p-0' : 'opacity-100'}`}>
           <div className={`h-full w-full p-8 flex items-center ${vizAlignClass} transition-all duration-700`}>
-             <div className={`w-full h-[85vh] rounded-3xl overflow-hidden shadow-2xl border ${theme.card} transition-all duration-700 relative`}>
+             <div className={`w-full h-[85vh] rounded-3xl overflow-hidden border ${theme.card} ${theme.cardShadow} transition-all duration-700 relative`}>
                <AnimatePresence mode="wait">
                  {activeSection && activeSection.cardType !== CardType.TEXT && (
                    <motion.div
@@ -191,7 +201,8 @@ const Viewer: React.FC<ViewerProps> = ({ config, data }) => {
         );
       })()}
 
-      <footer className="py-20 text-center border-t border-current/10 opacity-60">
+      <footer className="py-20 text-center opacity-60">
+        <div className="h-px w-32 mx-auto mb-12" style={{ backgroundColor: theme.accentHex }} />
         <h2 className="text-2xl font-bold mb-2">{config.title}</h2>
         <p className="text-sm italic opacity-80 mb-8">{config.subtitle}</p>
         <div className="text-[9px] uppercase tracking-tighter opacity-40">Powered by Polybius</div>
