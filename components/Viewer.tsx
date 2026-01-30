@@ -104,16 +104,18 @@ const Viewer: React.FC<ViewerProps> = ({ config, data }) => {
 
             if (section.cardType === CardType.TEXT) {
               const textAlignClass = section.config.textAlign === 'center' ? 'text-center' : section.config.textAlign === 'right' ? 'text-right' : section.config.textAlign === 'justify' ? 'text-justify' : 'text-left';
+              const isFull = !section.alignment || section.alignment === 'full';
+              const textWidthClass = isFull ? 'w-full' : 'max-w-4xl w-full';
               return (
                 <div
                   key={section.id}
                   ref={(el) => { sectionRefs.current[section.id] = el; }}
                   data-section-id={section.id}
-                  className={`min-h-[80vh] flex items-center ${alignClass} py-20 transition-opacity duration-500 ${
+                  className={`min-h-[80vh] flex items-center ${isFull ? 'justify-center' : alignClass} py-20 transition-opacity duration-500 ${
                     activeSectionId === section.id ? 'opacity-100' : 'opacity-20'
                   }`}
                 >
-                  <div className={`w-full p-12 rounded-2xl border border-t-4 ${theme.card} ${theme.cardShadow} backdrop-blur-sm ${textAlignClass}`} style={{ borderTopColor: theme.accentHex }}>
+                  <div className={`${textWidthClass} p-12 rounded-2xl border border-t-4 ${theme.card} ${theme.cardShadow} backdrop-blur-sm ${textAlignClass}`} style={{ borderTopColor: theme.accentHex }}>
                     <h2 className={`text-3xl font-bold mb-6 border-b pb-2 inline-block border-current/20 ${theme.headingColor}`}>
                       {section.title}
                     </h2>

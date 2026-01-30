@@ -383,8 +383,11 @@ const App: React.FC = () => {
                         const alignCls = s.alignment === 'right' ? 'justify-end' : s.alignment === 'center' ? 'justify-center' : 'justify-start';
                         if (s.cardType === 'TEXT') {
                             const taCls = s.config.textAlign === 'center' ? 'text-center' : s.config.textAlign === 'right' ? 'text-right' : s.config.textAlign === 'justify' ? 'text-justify' : 'text-left';
-                            return React.createElement('div', { key: s.id, ref: el => sectionRefs.current[s.id] = el, 'data-id': s.id, className: "min-h-[80vh] flex items-center " + alignCls + " py-20 transition-opacity duration-500 " + (activeId === s.id ? 'opacity-100' : 'opacity-20') },
-                                React.createElement('div', { className: "w-full p-12 rounded-2xl border border-t-4 " + theme.card + " " + theme.cardShadow + " " + taCls, style: { borderTopColor: theme.accentHex } }, [
+                            const isFull = !s.alignment || s.alignment === 'full';
+                            const textWidthCls = isFull ? 'w-full' : 'max-w-4xl w-full';
+                            const textJustifyCls = isFull ? 'justify-center' : alignCls;
+                            return React.createElement('div', { key: s.id, ref: el => sectionRefs.current[s.id] = el, 'data-id': s.id, className: "min-h-[80vh] flex items-center " + textJustifyCls + " py-20 transition-opacity duration-500 " + (activeId === s.id ? 'opacity-100' : 'opacity-20') },
+                                React.createElement('div', { className: textWidthCls + " p-12 rounded-2xl border border-t-4 " + theme.card + " " + theme.cardShadow + " " + taCls, style: { borderTopColor: theme.accentHex } }, [
                                     React.createElement('h2', { className: "text-3xl font-bold mb-6 " + theme.headingColor }, s.title),
                                     React.createElement('p', { className: "text-xl leading-relaxed whitespace-pre-wrap" }, s.content)
                                 ])

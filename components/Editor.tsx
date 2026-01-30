@@ -7,7 +7,7 @@ import {
   ChevronDown, ChevronUp, Map as MapIcon, Calendar, Share2,
   BarChart2, HelpCircle, BookOpen, Database, Zap, HardDrive, Package,
   AlertCircle, ArrowRight, Layers, Image, AlignLeft, AlignCenter, AlignRight,
-  AlignJustify, Type
+  AlignJustify, Type, Maximize2
 } from 'lucide-react';
 
 interface EditorProps {
@@ -235,8 +235,8 @@ const Editor: React.FC<EditorProps> = ({ config, data, onConfigChange, onDataCha
                           <div>
                             <label className="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Card Alignment</label>
                             <div className="flex gap-1.5">
-                              {([['left', AlignLeft], ['center', AlignCenter], ['right', AlignRight]] as const).map(([align, Icon]) => (
-                                <button key={align} onClick={() => updateSection(section.id, { alignment: align as CardAlignment })} className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all ${(section.alignment || 'left') === align ? 'border-indigo-400 bg-indigo-50 text-indigo-700' : 'border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300'}`}>
+                              {([['left', AlignLeft], ['center', AlignCenter], ['right', AlignRight], ...(section.cardType === CardType.TEXT ? [['full', Maximize2] as const] : [])] as [string, React.FC<any>][]).map(([align, Icon]) => (
+                                <button key={align} onClick={() => updateSection(section.id, { alignment: align as CardAlignment })} className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all ${(section.alignment || (section.cardType === CardType.TEXT ? 'full' : 'left')) === align ? 'border-indigo-400 bg-indigo-50 text-indigo-700' : 'border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300'}`}>
                                   <Icon size={14} />
                                   <span className="capitalize">{align}</span>
                                 </button>
