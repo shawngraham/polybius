@@ -1,6 +1,8 @@
 
 Polybius is a **Static Site Generator (SSG)** tailored for Digital Humanities. It bridges the gap between raw spreadsheet data and immersive narrative. You provide the historical evidence (CSV), we provide the interactive loom.
 
+[Use online at shawngraham.github.io/polybius](https://shawngraham.github.io/polybius).
+
 ## Run Locally
 
 **Prerequisites:**  Node.js
@@ -60,3 +62,9 @@ Mapping uses leaflet. If you want to have a historical map as base map (ie, from
     voyager: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
   };
 ```
+
+## Extend?
+
+Sure! Knock yourself out. Views are in the components file. Just follow the pattern.
+
+Now that I've got this up and running for my students' immediate use, I'm not likely to extend it, myself, and will probably ignore any pull requests. So - take a copy, do with it what you will.
