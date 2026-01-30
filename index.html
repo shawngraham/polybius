@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chronos Weaver - Historical Scrollytelling SSG</title>
+    <title>Polybius - Historical Scrollytelling SSG</title>
     
     <!-- Dynamic Base Path for GitHub Pages Subfolders -->
     <script>
@@ -14,16 +14,20 @@
         const isGhPages = hostname.includes('github.io');
         
         if (isGhPages) {
-          // GitHub Pages usually hosts at /repo-name/
-          // We extract the first part of the path as the base
+          // Extracts the repository name from the path
+          // Example: /chronos/ -> repoName is "chronos"
           const segments = pathname.split('/').filter(Boolean);
           if (segments.length > 0) {
             const repoName = segments[0];
-            // Only set base if we are likely in a project site (not a user site root)
-            // User sites are username.github.io/, project sites are username.github.io/project/
+            
+            // Check if we are at the root of a project page
+            // If the URL is missing the trailing slash, relative paths can break.
+            // This script ensures the <base> tag points to the correct subfolder.
             const base = document.createElement('base');
             base.href = '/' + repoName + '/';
             document.head.appendChild(base);
+            
+            console.log("Chronos Weaver: Base path set to " + base.href);
           }
         }
       })();
@@ -87,7 +91,7 @@
 </head>
 <body>
     <div id="root"></div>
-    <!-- Use a relative path to ensure the module is loaded correctly in subdirectories -->
+    <!-- Explicitly using ./ ensures relative resolution from the current folder -->
     <script type="module" src="./index.tsx"></script>
 </body>
 </html>
