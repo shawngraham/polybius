@@ -1,55 +1,76 @@
 
 import { SiteConfig, ThemeType, CardType } from './types';
 
-export const THEMES: Record<ThemeType, { bg: string; text: string; accent: string; font: string; card: string }> = {
+export const THEMES: Record<ThemeType, { bg: string; text: string; accent: string; font: string; card: string; headingColor: string; accentHex: string; cardShadow: string }> = {
   classic: {
     bg: 'bg-white',
     text: 'text-gray-900',
     accent: 'bg-blue-600',
     font: 'font-sans',
-    card: 'bg-gray-50 border-gray-200'
+    card: 'bg-gray-50 border-gray-200',
+    headingColor: 'text-gray-900',
+    accentHex: '#2563eb',
+    cardShadow: 'shadow-xl'
   },
   parchment: {
     bg: 'bg-[#f4ead5]',
     text: 'text-[#432e1a]',
     accent: 'bg-[#8b4513]',
     font: 'font-serif',
-    card: 'bg-[#ede0c8] border-[#d4c3a3]'
+    card: 'bg-[#ede0c8] border-[#d4c3a3]',
+    headingColor: 'text-[#6b3410]',
+    accentHex: '#8b4513',
+    cardShadow: 'shadow-xl'
   },
   academic: {
     bg: 'bg-zinc-100',
     text: 'text-zinc-900',
     accent: 'bg-zinc-800',
     font: 'font-serif',
-    card: 'bg-white border-zinc-300'
+    card: 'bg-white border-zinc-300',
+    headingColor: 'text-zinc-900',
+    accentHex: '#27272a',
+    cardShadow: 'shadow-xl'
   },
   dark: {
     bg: 'bg-zinc-950',
     text: 'text-zinc-100',
     accent: 'bg-amber-500',
     font: 'font-sans',
-    card: 'bg-zinc-900 border-zinc-800'
+    card: 'bg-zinc-900 border-zinc-800',
+    headingColor: 'text-amber-400',
+    accentHex: '#f59e0b',
+    cardShadow: 'shadow-lg ring-1 ring-white/5'
   },
   highcontrast: {
     bg: 'bg-white',
     text: 'text-black',
     accent: 'bg-blue-700',
     font: 'font-sans',
-    card: 'bg-white border-black'
+    card: 'bg-white border-black',
+    headingColor: 'text-black',
+    accentHex: '#1d4ed8',
+    cardShadow: 'shadow-xl'
   },
   maritime: {
     bg: 'bg-[#0b1a2e]',
     text: 'text-[#c9daea]',
     accent: 'bg-[#d4a017]',
     font: 'font-serif',
-    card: 'bg-[#122240] border-[#1e3a5f]'
+    card: 'bg-[#122240] border-[#1e3a5f]',
+    headingColor: 'text-[#e8b828]',
+    accentHex: '#d4a017',
+    cardShadow: 'shadow-lg ring-1 ring-white/5'
   },
   forest: {
     bg: 'bg-[#f0ebe3]',
     text: 'text-[#2d3a2e]',
     accent: 'bg-[#5a7247]',
     font: 'font-serif',
-    card: 'bg-[#e8e0d4] border-[#c4b9a8]'
+    card: 'bg-[#e8e0d4] border-[#c4b9a8]',
+    headingColor: 'text-[#3d5230]',
+    accentHex: '#5a7247',
+    cardShadow: 'shadow-xl'
   }
 };
 

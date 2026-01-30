@@ -103,13 +103,13 @@ const App: React.FC = () => {
 
         // --- CONSTANTS & TYPES ---
         const THEMES = {
-          classic: { bg: 'bg-white', text: 'text-gray-900', accent: 'bg-blue-600', font: 'font-sans', card: 'bg-gray-50 border-gray-200' },
-          parchment: { bg: 'bg-[#f4ead5]', text: 'text-[#432e1a]', accent: 'bg-[#8b4513]', font: 'font-serif', card: 'bg-[#ede0c8] border-[#d4c3a3]' },
-          academic: { bg: 'bg-zinc-100', text: 'text-zinc-900', accent: 'bg-zinc-800', font: 'font-serif', card: 'bg-white border-zinc-300' },
-          dark: { bg: 'bg-zinc-950', text: 'text-zinc-100', accent: 'bg-amber-500', font: 'font-sans', card: 'bg-zinc-900 border-zinc-800' },
-          highcontrast: { bg: 'bg-white', text: 'text-black', accent: 'bg-blue-700', font: 'font-sans', card: 'bg-white border-black' },
-          maritime: { bg: 'bg-[#0b1a2e]', text: 'text-[#c9daea]', accent: 'bg-[#d4a017]', font: 'font-serif', card: 'bg-[#122240] border-[#1e3a5f]' },
-          forest: { bg: 'bg-[#f0ebe3]', text: 'text-[#2d3a2e]', accent: 'bg-[#5a7247]', font: 'font-serif', card: 'bg-[#e8e0d4] border-[#c4b9a8]' }
+          classic: { bg: 'bg-white', text: 'text-gray-900', accent: 'bg-blue-600', font: 'font-sans', card: 'bg-gray-50 border-gray-200', headingColor: 'text-gray-900', accentHex: '#2563eb', cardShadow: 'shadow-xl' },
+          parchment: { bg: 'bg-[#f4ead5]', text: 'text-[#432e1a]', accent: 'bg-[#8b4513]', font: 'font-serif', card: 'bg-[#ede0c8] border-[#d4c3a3]', headingColor: 'text-[#6b3410]', accentHex: '#8b4513', cardShadow: 'shadow-xl' },
+          academic: { bg: 'bg-zinc-100', text: 'text-zinc-900', accent: 'bg-zinc-800', font: 'font-serif', card: 'bg-white border-zinc-300', headingColor: 'text-zinc-900', accentHex: '#27272a', cardShadow: 'shadow-xl' },
+          dark: { bg: 'bg-zinc-950', text: 'text-zinc-100', accent: 'bg-amber-500', font: 'font-sans', card: 'bg-zinc-900 border-zinc-800', headingColor: 'text-amber-400', accentHex: '#f59e0b', cardShadow: 'shadow-lg ring-1 ring-white/5' },
+          highcontrast: { bg: 'bg-white', text: 'text-black', accent: 'bg-blue-700', font: 'font-sans', card: 'bg-white border-black', headingColor: 'text-black', accentHex: '#1d4ed8', cardShadow: 'shadow-xl' },
+          maritime: { bg: 'bg-[#0b1a2e]', text: 'text-[#c9daea]', accent: 'bg-[#d4a017]', font: 'font-serif', card: 'bg-[#122240] border-[#1e3a5f]', headingColor: 'text-[#e8b828]', accentHex: '#d4a017', cardShadow: 'shadow-lg ring-1 ring-white/5' },
+          forest: { bg: 'bg-[#f0ebe3]', text: 'text-[#2d3a2e]', accent: 'bg-[#5a7247]', font: 'font-serif', card: 'bg-[#e8e0d4] border-[#c4b9a8]', headingColor: 'text-[#3d5230]', accentHex: '#5a7247', cardShadow: 'shadow-xl' }
         };
 
         // --- SUB-COMPONENTS ---
@@ -365,13 +365,18 @@ const App: React.FC = () => {
             const vizAlignCls = activeSection && activeSection.vizAlignment === 'left' ? 'justify-start' : activeSection && activeSection.vizAlignment === 'right' ? 'justify-end' : 'justify-center';
 
             return React.createElement('div', { className: "min-h-screen transition-colors duration-700 " + theme.bg + " " + theme.text + " " + theme.font }, [
-                React.createElement('header', { className: "h-[70vh] flex flex-col items-center justify-center text-center px-6" }, [
+                React.createElement('style', null, "::selection { background-color: " + theme.accentHex + "33; }"),
+                React.createElement('header', { className: "h-[70vh] flex flex-col items-center justify-center text-center px-6 relative" }, [
                     React.createElement('h1', { className: "text-5xl md:text-7xl font-bold mb-4 tracking-tight" }, config.title),
+                    React.createElement('div', { className: "h-1 w-24 rounded-full mx-auto mt-2 mb-6", style: { backgroundColor: theme.accentHex } }),
                     React.createElement('p', { className: "text-xl md:text-2xl opacity-80 italic max-w-2xl" }, config.subtitle),
                     React.createElement('div', { className: "mt-8 flex flex-col items-center" }, [
                         React.createElement('span', { className: "text-xs font-bold uppercase tracking-widest opacity-50" }, "Authored by"),
                         React.createElement('span', { className: "text-lg font-medium border-b border-current" }, config.author)
-                    ])
+                    ]),
+                    React.createElement('div', { className: "absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce opacity-40" },
+                        React.createElement(Lucide.ChevronDown, { size: 24 })
+                    )
                 ]),
                 React.createElement('div', { className: "relative flex flex-col md:flex-row" }, [
                     React.createElement('div', { className: "px-6 pb-20 transition-all duration-700 " + (isTextActive ? "w-full" : "w-full md:w-1/2") }, config.sections.map(s => {
@@ -379,22 +384,22 @@ const App: React.FC = () => {
                         if (s.cardType === 'TEXT') {
                             const taCls = s.config.textAlign === 'center' ? 'text-center' : s.config.textAlign === 'right' ? 'text-right' : s.config.textAlign === 'justify' ? 'text-justify' : 'text-left';
                             return React.createElement('div', { key: s.id, ref: el => sectionRefs.current[s.id] = el, 'data-id': s.id, className: "min-h-[80vh] flex items-center " + alignCls + " py-20 transition-opacity duration-500 " + (activeId === s.id ? 'opacity-100' : 'opacity-20') },
-                                React.createElement('div', { className: "w-full p-12 rounded-2xl shadow-xl border " + theme.card + " " + taCls }, [
-                                    React.createElement('h2', { className: "text-3xl font-bold mb-6" }, s.title),
+                                React.createElement('div', { className: "w-full p-12 rounded-2xl border border-t-4 " + theme.card + " " + theme.cardShadow + " " + taCls, style: { borderTopColor: theme.accentHex } }, [
+                                    React.createElement('h2', { className: "text-3xl font-bold mb-6 " + theme.headingColor }, s.title),
                                     React.createElement('p', { className: "text-xl leading-relaxed whitespace-pre-wrap" }, s.content)
                                 ])
                             );
                         }
                         return React.createElement('div', { key: s.id, ref: el => sectionRefs.current[s.id] = el, 'data-id': s.id, className: "min-h-[80vh] flex items-center " + alignCls + " py-20 transition-opacity duration-500 " + (activeId === s.id ? 'opacity-100' : 'opacity-20') },
-                            React.createElement('div', { className: "max-w-lg p-8 rounded-2xl shadow-xl border " + theme.card }, [
-                                React.createElement('h2', { className: "text-3xl font-bold mb-6" }, s.title),
+                            React.createElement('div', { className: "max-w-lg p-8 rounded-2xl border border-t-4 " + theme.card + " " + theme.cardShadow, style: { borderTopColor: theme.accentHex } }, [
+                                React.createElement('h2', { className: "text-3xl font-bold mb-6 " + theme.headingColor }, s.title),
                                 React.createElement('p', { className: "text-lg leading-relaxed whitespace-pre-wrap" }, s.content)
                             ])
                         );
                     })),
                     React.createElement('div', { className: "hidden md:block w-1/2 h-screen sticky top-0 transition-all duration-700 " + (isTextActive ? "opacity-0 w-0 p-0" : "opacity-100") },
                         React.createElement('div', { className: "h-full p-8 flex items-center transition-all duration-700 " + vizAlignCls },
-                            React.createElement('div', { className: "w-full h-[85vh] rounded-3xl overflow-hidden shadow-2xl border relative " + theme.card },
+                            React.createElement('div', { className: "w-full h-[85vh] rounded-3xl overflow-hidden border relative " + theme.card + " " + theme.cardShadow },
                                 React.createElement(AnimatePresence, { mode: 'wait' },
                                     activeSection && activeSection.cardType !== 'TEXT' && React.createElement(motion.div, { key: activeId, initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, className: "absolute inset-0" }, renderViz())
                                 )
@@ -402,7 +407,8 @@ const App: React.FC = () => {
                         )
                     )
                 ]),
-                React.createElement('footer', { className: "py-20 text-center border-t border-current/10 opacity-60" }, [
+                React.createElement('footer', { className: "py-20 text-center opacity-60" }, [
+                    React.createElement('div', { className: "h-px w-32 mx-auto mb-12", style: { backgroundColor: theme.accentHex } }),
                     React.createElement('h2', { className: "text-2xl font-bold" }, config.title),
                     React.createElement('p', { className: "text-xs mt-2 uppercase tracking-widest" }, "Powered by Polybius")
                 ])
