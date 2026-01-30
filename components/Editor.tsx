@@ -369,6 +369,17 @@ const Editor: React.FC<EditorProps> = ({ config, data, onConfigChange, onDataCha
                           S2,Dunhuang,S1
                         </div>
                       </div>
+
+                      <div className="border-l-4 border-indigo-500 pl-4 py-1">
+                        <h5 className="font-bold text-xs uppercase text-zinc-400 mb-2">Image Gallery View</h5>
+                        <p className="text-sm text-zinc-700 mb-2">Requires an **Image URL** column containing links to static images or IIIF Image API endpoints. An optional **Description** column provides captions.</p>
+                        <div className="bg-zinc-900 rounded-lg p-3 font-mono text-[10px] text-zinc-400">
+                          label,imageUrl,description<br/>
+                          Samarkand,https://example.com/registan.jpg,The Registan square<br/>
+                          Dunhuang,https://iiif.example.org/mogao/full/800,/0/default.jpg,Mogao Caves
+                        </div>
+                        <p className="text-xs text-zinc-500 mt-2 leading-relaxed">IIIF endpoints are detected automatically. If a URL contains <span className="font-mono bg-zinc-100 px-1 rounded">/iiif/</span> and has no file extension, the viewer appends <span className="font-mono bg-zinc-100 px-1 rounded">/full/800,/0/default.jpg</span> to resolve the image.</p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -380,6 +391,7 @@ const Editor: React.FC<EditorProps> = ({ config, data, onConfigChange, onDataCha
                   <div className="p-2 bg-indigo-50 rounded-xl"><Palette size={24} /></div>
                   <h3 className="font-black text-2xl tracking-tight">III. Thematic Aesthetic</h3>
                 </div>
+                <p className="text-sm text-zinc-600 leading-relaxed">Seven built-in themes are available in the Visual Aesthetic tab. Each theme controls background color, text color, accent color, font family, and card styling.</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <h5 className="font-bold text-sm">Classic & Academic</h5>
@@ -388,6 +400,17 @@ const Editor: React.FC<EditorProps> = ({ config, data, onConfigChange, onDataCha
                   <div className="space-y-2">
                     <h5 className="font-bold text-sm">Parchment & Dark</h5>
                     <p className="text-xs text-zinc-500 leading-relaxed">Best for pre-modern history, manuscript studies, and archival collections where atmospheric immersion is prioritized.</p>
+                  </div>
+                  <div className="space-y-2">
+                    <h5 className="font-bold text-sm">Maritime & Forest</h5>
+                    <p className="text-xs text-zinc-500 leading-relaxed">Atmospheric themes for specialized projects. Maritime uses deep navy with gold accents for nautical or trade history. Forest uses earthy greens and warm stone tones for environmental or rural heritage.</p>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <h5 className="font-bold text-sm">High Contrast</h5>
+                      <span className="text-[9px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded-full font-bold uppercase border border-emerald-200">WCAG AAA</span>
+                    </div>
+                    <p className="text-xs text-zinc-500 leading-relaxed">Designed to meet WCAG AAA accessibility standards. Uses black text on a white background with solid borders and a high-contrast blue accent. Recommended when your audience includes users with visual impairments or when institutional accessibility compliance is required.</p>
                   </div>
                 </div>
               </section>
