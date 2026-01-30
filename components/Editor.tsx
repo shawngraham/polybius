@@ -1,12 +1,12 @@
 
 import React, { useState, useMemo } from 'react';
-import { SiteConfig, ThemeType, Section, CardType, HeritageDataItem, BibliographyEntry } from '../types';
-import { 
+import { SiteConfig, ThemeType, Section, CardType, CardAlignment, HeritageDataItem, BibliographyEntry } from '../types';
+import {
   Plus, Trash2, Settings, Download, Upload, FileText, Layout, Palette,
   Info, Users, Link as LinkIcon, Github, Globe, CheckCircle2,
   ChevronDown, ChevronUp, Map as MapIcon, Calendar, Share2,
   BarChart2, HelpCircle, BookOpen, Database, Zap, HardDrive, Package,
-  AlertCircle, ArrowRight, Layers, Image
+  AlertCircle, ArrowRight, Layers, Image, AlignLeft, AlignCenter, AlignRight
 } from 'lucide-react';
 
 interface EditorProps {
@@ -228,11 +228,22 @@ const Editor: React.FC<EditorProps> = ({ config, data, onConfigChange, onDataCha
                       <div className="p-6 pt-2 border-t border-zinc-100 space-y-6 animate-in slide-in-from-top-1 duration-200">
                         <div className="grid grid-cols-2 gap-4">
                           <div><label className="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Section Heading</label><input type="text" value={section.title} onChange={(e) => updateSection(section.id, { title: e.target.value })} className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm" /></div>
-                          <div><label className="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Visualization Type</label><select value={section.cardType} onChange={(e) => updateSection(section.id, { cardType: e.target.value as CardType })} className="w-full px-3 py-2 border border-zinc-200 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm"><option value={CardType.TIMELINE}>Timeline View</option><option value={CardType.MAP}>Geographic Map</option><option value={CardType.NETWORK}>Network Graph</option><option value={CardType.STATISTICS}>Statistical Chart</option><option value={CardType.GALLERY}>Image Gallery</option></select></div>
+                          <div><label className="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Visualization Type</label><select value={section.cardType} onChange={(e) => updateSection(section.id, { cardType: e.target.value as CardType })} className="w-full px-3 py-2 border border-zinc-200 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm"><option value={CardType.TIMELINE}>Timeline View</option><option value={CardType.MAP}>Geographic Map</option><option value={CardType.NETWORK}>Network Graph</option><option value={CardType.STATISTICS}>Statistical Chart</option><option value={CardType.GALLERY}>Image Gallery</option><option value={CardType.IMAGE}>Single Image</option></select></div>
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Card Alignment</label>
+                          <div className="flex gap-2">
+                            {([['left', AlignLeft], ['center', AlignCenter], ['right', AlignRight]] as const).map(([align, Icon]) => (
+                              <button key={align} onClick={() => updateSection(section.id, { alignment: align as CardAlignment })} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${(section.alignment || 'left') === align ? 'border-indigo-400 bg-indigo-50 text-indigo-700' : 'border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300'}`}>
+                                <Icon size={14} />
+                                <span className="capitalize">{align}</span>
+                              </button>
+                            ))}
+                          </div>
                         </div>
                         <div><label className="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Historical Chronicle</label><textarea rows={4} value={section.content} onChange={(e) => updateSection(section.id, { content: e.target.value })} className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm leading-relaxed" placeholder="Interweave your analysis with the data points..." /></div>
                         <div className="bg-zinc-50 rounded-xl p-5 border border-zinc-100">
-                           <div className="flex items-center gap-2 mb-4 border-b border-zinc-200 pb-2">{section.cardType === CardType.MAP && <MapIcon size={16} className="text-indigo-500" />}{section.cardType === CardType.TIMELINE && <Calendar size={16} className="text-indigo-500" />}{section.cardType === CardType.NETWORK && <Share2 size={16} className="text-indigo-500" />}{section.cardType === CardType.STATISTICS && <BarChart2 size={16} className="text-indigo-500" />}{section.cardType === CardType.GALLERY && <Image size={16} className="text-indigo-500" />}<h4 className="text-[10px] font-bold uppercase text-zinc-500 tracking-wider">Mapping & Constraints</h4></div>
+                           <div className="flex items-center gap-2 mb-4 border-b border-zinc-200 pb-2">{section.cardType === CardType.MAP && <MapIcon size={16} className="text-indigo-500" />}{section.cardType === CardType.TIMELINE && <Calendar size={16} className="text-indigo-500" />}{section.cardType === CardType.NETWORK && <Share2 size={16} className="text-indigo-500" />}{section.cardType === CardType.STATISTICS && <BarChart2 size={16} className="text-indigo-500" />}{section.cardType === CardType.GALLERY && <Image size={16} className="text-indigo-500" />}{section.cardType === CardType.IMAGE && <Image size={16} className="text-indigo-500" />}<h4 className="text-[10px] font-bold uppercase text-zinc-500 tracking-wider">Mapping & Constraints</h4></div>
                            <div className="grid grid-cols-2 gap-y-4 gap-x-6">
                               <div><label className="block text-[10px] font-semibold text-zinc-500 mb-1">Display Label</label><select value={section.config.labelKey || ''} onChange={(e) => updateSectionConfig(section.id, 'labelKey', e.target.value)} className="w-full px-2 py-1.5 border border-zinc-200 rounded bg-white text-xs">{dataHeaders.map(h => <option key={h} value={h}>{h}</option>)}</select></div>
                               {section.cardType === CardType.TIMELINE && (<div><label className="block text-[10px] font-semibold text-zinc-500 mb-1">Date Column</label><select value={section.config.dateKey || ''} onChange={(e) => updateSectionConfig(section.id, 'dateKey', e.target.value)} className="w-full px-2 py-1.5 border border-zinc-200 rounded bg-white text-xs">{dataHeaders.map(h => <option key={h} value={h}>{h}</option>)}</select></div>)}
@@ -240,6 +251,7 @@ const Editor: React.FC<EditorProps> = ({ config, data, onConfigChange, onDataCha
                               {section.cardType === CardType.NETWORK && (<div><label className="block text-[10px] font-semibold text-zinc-500 mb-1">Connections</label><select value={section.config.connectionsKey || ''} onChange={(e) => updateSectionConfig(section.id, 'connectionsKey', e.target.value)} className="w-full px-2 py-1.5 border border-zinc-200 rounded bg-white text-xs">{dataHeaders.map(h => <option key={h} value={h}>{h}</option>)}</select></div>)}
                               {section.cardType === CardType.STATISTICS && (<div><label className="block text-[10px] font-semibold text-zinc-500 mb-1">Category</label><select value={section.config.categoryKey || ''} onChange={(e) => updateSectionConfig(section.id, 'categoryKey', e.target.value)} className="w-full px-2 py-1.5 border border-zinc-200 rounded bg-white text-xs">{dataHeaders.map(h => <option key={h} value={h}>{h}</option>)}</select></div>)}
                               {section.cardType === CardType.GALLERY && (<><div><label className="block text-[10px] font-semibold text-zinc-500 mb-1">Image URL Column</label><select value={section.config.imageKey || ''} onChange={(e) => updateSectionConfig(section.id, 'imageKey', e.target.value)} className="w-full px-2 py-1.5 border border-zinc-200 rounded bg-white text-xs">{dataHeaders.map(h => <option key={h} value={h}>{h}</option>)}</select></div><div><label className="block text-[10px] font-semibold text-zinc-500 mb-1">Description Column</label><select value={section.config.descriptionKey || ''} onChange={(e) => updateSectionConfig(section.id, 'descriptionKey', e.target.value)} className="w-full px-2 py-1.5 border border-zinc-200 rounded bg-white text-xs">{dataHeaders.map(h => <option key={h} value={h}>{h}</option>)}</select></div></>)}
+                              {section.cardType === CardType.IMAGE && (<><div><label className="block text-[10px] font-semibold text-zinc-500 mb-1">Image URL Column</label><select value={section.config.imageKey || ''} onChange={(e) => updateSectionConfig(section.id, 'imageKey', e.target.value)} className="w-full px-2 py-1.5 border border-zinc-200 rounded bg-white text-xs">{dataHeaders.map(h => <option key={h} value={h}>{h}</option>)}</select></div><div><label className="block text-[10px] font-semibold text-zinc-500 mb-1">Description Column</label><select value={section.config.descriptionKey || ''} onChange={(e) => updateSectionConfig(section.id, 'descriptionKey', e.target.value)} className="w-full px-2 py-1.5 border border-zinc-200 rounded bg-white text-xs">{dataHeaders.map(h => <option key={h} value={h}>{h}</option>)}</select></div><div><label className="block text-[10px] font-semibold text-zinc-500 mb-1">Item Number</label><input type="number" min={1} value={(section.config.itemIndex ?? 0) + 1} onChange={(e) => updateSectionConfig(section.id, 'itemIndex', Math.max(0, parseInt(e.target.value || '1') - 1))} className="w-full px-2 py-1.5 border border-zinc-200 rounded bg-white text-xs" /></div></>)}
                            </div>
                         </div>
                       </div>
@@ -380,16 +392,48 @@ const Editor: React.FC<EditorProps> = ({ config, data, onConfigChange, onDataCha
                         </div>
                         <p className="text-xs text-zinc-500 mt-2 leading-relaxed">IIIF endpoints are detected automatically. If a URL contains <span className="font-mono bg-zinc-100 px-1 rounded">/iiif/</span> and has no file extension, the viewer appends <span className="font-mono bg-zinc-100 px-1 rounded">/full/800,/0/default.jpg</span> to resolve the image.</p>
                       </div>
+
+                      <div className="border-l-4 border-indigo-500 pl-4 py-1">
+                        <h5 className="font-bold text-xs uppercase text-zinc-400 mb-2">Single Image View</h5>
+                        <p className="text-sm text-zinc-700 mb-2">Displays one image from the dataset. Uses the same **Image URL** column as the Gallery View. Choose which data item to display via the **Item Number** field (1-indexed).</p>
+                        <p className="text-xs text-zinc-500 leading-relaxed">Use this when a section's narrative refers to a specific artifact, location, or document and you want to present it without gallery navigation.</p>
+                      </div>
                     </div>
                   </div>
                 </div>
               </section>
 
-              {/* 3. Thematic Design */}
+              {/* 2b. Card Alignment */}
+              <section className="space-y-6">
+                <div className="flex items-center gap-3 text-indigo-600">
+                  <div className="p-2 bg-indigo-50 rounded-xl"><Layout size={24} /></div>
+                  <h3 className="font-black text-2xl tracking-tight">III. Card Alignment</h3>
+                </div>
+                <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm space-y-4">
+                  <p className="text-sm text-zinc-700 leading-relaxed">Each section has a **Card Alignment** control that positions the narrative card within the left column of the scrollytelling layout.</p>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="text-center space-y-1">
+                      <div className="bg-zinc-50 rounded-lg p-3 flex justify-start"><div className="w-16 h-8 bg-indigo-100 border border-indigo-200 rounded" /></div>
+                      <p className="text-[10px] font-bold text-zinc-500 uppercase">Left</p>
+                    </div>
+                    <div className="text-center space-y-1">
+                      <div className="bg-zinc-50 rounded-lg p-3 flex justify-center"><div className="w-16 h-8 bg-indigo-100 border border-indigo-200 rounded" /></div>
+                      <p className="text-[10px] font-bold text-zinc-500 uppercase">Center</p>
+                    </div>
+                    <div className="text-center space-y-1">
+                      <div className="bg-zinc-50 rounded-lg p-3 flex justify-end"><div className="w-16 h-8 bg-indigo-100 border border-indigo-200 rounded" /></div>
+                      <p className="text-[10px] font-bold text-zinc-500 uppercase">Right</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-zinc-500 leading-relaxed">Alignment applies to the exported static page. Varying alignment across sections creates visual rhythm in the final scrollytelling narrative.</p>
+                </div>
+              </section>
+
+              {/* 4. Thematic Design */}
               <section className="space-y-6">
                 <div className="flex items-center gap-3 text-indigo-600">
                   <div className="p-2 bg-indigo-50 rounded-xl"><Palette size={24} /></div>
-                  <h3 className="font-black text-2xl tracking-tight">III. Thematic Aesthetic</h3>
+                  <h3 className="font-black text-2xl tracking-tight">IV. Thematic Aesthetic</h3>
                 </div>
                 <p className="text-sm text-zinc-600 leading-relaxed">Seven built-in themes are available in the Visual Aesthetic tab. Each theme controls background color, text color, accent color, font family, and card styling.</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -419,7 +463,7 @@ const Editor: React.FC<EditorProps> = ({ config, data, onConfigChange, onDataCha
               <section className="space-y-6">
                 <div className="flex items-center gap-3 text-indigo-600">
                   <div className="p-2 bg-indigo-50 rounded-xl"><Globe size={24} /></div>
-                  <h3 className="font-black text-2xl tracking-tight">IV. Publishing & Hosting</h3>
+                  <h3 className="font-black text-2xl tracking-tight">V. Publishing & Hosting</h3>
                 </div>
                 <div className="bg-indigo-900 text-white p-8 rounded-3xl shadow-2xl relative overflow-hidden">
                   <div className="relative z-10">

@@ -6,8 +6,11 @@ export enum CardType {
   MAP = 'MAP',
   NETWORK = 'NETWORK',
   STATISTICS = 'STATISTICS',
-  GALLERY = 'GALLERY'
+  GALLERY = 'GALLERY',
+  IMAGE = 'IMAGE'
 }
+
+export type CardAlignment = 'left' | 'center' | 'right';
 
 export interface BibliographyEntry {
   id: string;
@@ -20,6 +23,7 @@ export interface Section {
   title: string;
   content: string;
   cardType: CardType;
+  alignment?: CardAlignment;
   config: Record<string, any>;
 }
 
