@@ -35,8 +35,8 @@ export const THEMES: Record<ThemeType, { bg: string; text: string; accent: strin
 export const INITIAL_CONFIG: SiteConfig = {
   title: "The Silk Road Exchange",
   subtitle: "Visualizing 13th Century Commercial Networks",
-  author: "Dr. Elena Vance",
-  collaborators: "Department of Central Asian Studies, University of Silk Road; Map data provided by the Open Heritage Project.",
+  author: "Dr. John Doe",
+  collaborators: "Department of Central Asian Studies, Miskatonic; Map data provided by the Miskatonic Cthulic Heritage Project.",
   bibliography: [
     { id: 'b1', text: "Polo, Marco. 'The Travels of Marco Polo'. 13th Century Manuscript.", url: "" },
     { id: 'b2', text: "Bentley, Jerry H. 'Old World Encounters'. Oxford University Press, 1993.", url: "https://example.edu/bentley-dh" }
