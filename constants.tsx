@@ -29,6 +29,27 @@ export const THEMES: Record<ThemeType, { bg: string; text: string; accent: strin
     accent: 'bg-amber-500',
     font: 'font-sans',
     card: 'bg-zinc-900 border-zinc-800'
+  },
+  highcontrast: {
+    bg: 'bg-white',
+    text: 'text-black',
+    accent: 'bg-blue-700',
+    font: 'font-sans',
+    card: 'bg-white border-black'
+  },
+  maritime: {
+    bg: 'bg-[#0b1a2e]',
+    text: 'text-[#c9daea]',
+    accent: 'bg-[#d4a017]',
+    font: 'font-serif',
+    card: 'bg-[#122240] border-[#1e3a5f]'
+  },
+  forest: {
+    bg: 'bg-[#f0ebe3]',
+    text: 'text-[#2d3a2e]',
+    accent: 'bg-[#5a7247]',
+    font: 'font-serif',
+    card: 'bg-[#e8e0d4] border-[#c4b9a8]'
   }
 };
 
@@ -70,15 +91,22 @@ export const INITIAL_CONFIG: SiteConfig = {
       content: "Diplomatic missions often accompanied trade. The connections between the Yuan court and the Ilkhanate were particularly robust.",
       cardType: CardType.NETWORK,
       config: { sourceKey: 'label', connectionsKey: 'connections' }
+    },
+    {
+      id: '5',
+      title: "Monuments of Exchange",
+      content: "The great cities of the Silk Road left behind architectural marvels that still stand as testaments to centuries of cultural exchange and artistic synthesis.",
+      cardType: CardType.GALLERY,
+      config: { imageKey: 'imageUrl', labelKey: 'label', descriptionKey: 'description' }
     }
   ]
 };
 
 export const SAMPLE_DATA = [
-  { id: 'S1', label: "Samarkand", date: 1210, latitude: 39.65, longitude: 66.97, category: "Trade Hub", connections: ['S2', 'S4'] },
-  { id: 'S2', label: "Dunhuang", date: 1225, latitude: 40.14, longitude: 94.66, category: "Cultural Hub", connections: ['S1', 'S3'] },
-  { id: 'S3', label: "Khanbaliq", date: 1264, latitude: 39.90, longitude: 116.40, category: "Capital", connections: ['S2'] },
-  { id: 'S4', label: "Tabriz", date: 1250, latitude: 38.08, longitude: 46.29, category: "Trade Hub", connections: ['S1', 'S5'] },
-  { id: 'S5', label: "Venice", date: 1271, latitude: 45.44, longitude: 12.31, category: "Maritime Power", connections: ['S4'] },
-  { id: 'S6', label: "Constantinople", date: 1204, latitude: 41.00, longitude: 28.97, category: "Trade Hub", connections: ['S4', 'S5'] },
+  { id: 'S1', label: "Samarkand", date: 1210, latitude: 39.65, longitude: 66.97, category: "Trade Hub", connections: ['S2', 'S4'], description: "A jewel of the Silk Road and center of Islamic scholarship.", imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/Registan_-_Pair.jpg/800px-Registan_-_Pair.jpg" },
+  { id: 'S2', label: "Dunhuang", date: 1225, latitude: 40.14, longitude: 94.66, category: "Cultural Hub", connections: ['S1', 'S3'], description: "Gateway to the Mogao Caves, a treasury of Buddhist art.", imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Dunhuang_Mogao_Ku_2013.12.31_13-07-36.jpg/800px-Dunhuang_Mogao_Ku_2013.12.31_13-07-36.jpg" },
+  { id: 'S3', label: "Khanbaliq", date: 1264, latitude: 39.90, longitude: 116.40, category: "Capital", connections: ['S2'], description: "Capital of the Yuan dynasty under Kublai Khan.", imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/YuanEmperorAlbumGenghisPortrait.jpg/440px-YuanEmperorAlbumGenghisPortrait.jpg" },
+  { id: 'S4', label: "Tabriz", date: 1250, latitude: 38.08, longitude: 46.29, category: "Trade Hub", connections: ['S1', 'S5'], description: "Ilkhanate capital and crossroads of East-West commerce.", imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Blue_mosque_Tabriz.jpg/800px-Blue_mosque_Tabriz.jpg" },
+  { id: 'S5', label: "Venice", date: 1271, latitude: 45.44, longitude: 12.31, category: "Maritime Power", connections: ['S4'], description: "Maritime republic and departure point for Marco Polo.", imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Venezia_Panorama_%28cropped%29.jpg/800px-Venezia_Panorama_%28cropped%29.jpg" },
+  { id: 'S6', label: "Constantinople", date: 1204, latitude: 41.00, longitude: 28.97, category: "Trade Hub", connections: ['S4', 'S5'], description: "Byzantine capital bridging Europe and Asia.", imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Hagia-Sophia-Innenansicht.jpg/800px-Hagia-Sophia-Innenansicht.jpg" },
 ];

@@ -106,7 +106,10 @@ const App: React.FC = () => {
           classic: { bg: 'bg-white', text: 'text-gray-900', accent: 'bg-blue-600', font: 'font-sans', card: 'bg-gray-50 border-gray-200' },
           parchment: { bg: 'bg-[#f4ead5]', text: 'text-[#432e1a]', accent: 'bg-[#8b4513]', font: 'font-serif', card: 'bg-[#ede0c8] border-[#d4c3a3]' },
           academic: { bg: 'bg-zinc-100', text: 'text-zinc-900', accent: 'bg-zinc-800', font: 'font-serif', card: 'bg-white border-zinc-300' },
-          dark: { bg: 'bg-zinc-950', text: 'text-zinc-100', accent: 'bg-amber-500', font: 'font-sans', card: 'bg-zinc-900 border-zinc-800' }
+          dark: { bg: 'bg-zinc-950', text: 'text-zinc-100', accent: 'bg-amber-500', font: 'font-sans', card: 'bg-zinc-900 border-zinc-800' },
+          highcontrast: { bg: 'bg-white', text: 'text-black', accent: 'bg-blue-700', font: 'font-sans', card: 'bg-white border-black' },
+          maritime: { bg: 'bg-[#0b1a2e]', text: 'text-[#c9daea]', accent: 'bg-[#d4a017]', font: 'font-serif', card: 'bg-[#122240] border-[#1e3a5f]' },
+          forest: { bg: 'bg-[#f0ebe3]', text: 'text-[#2d3a2e]', accent: 'bg-[#5a7247]', font: 'font-serif', card: 'bg-[#e8e0d4] border-[#c4b9a8]' }
         };
 
         // --- SUB-COMPONENTS ---
@@ -256,6 +259,45 @@ const App: React.FC = () => {
             ]);
         };
 
+        const ImageView = ({ data, config, theme }) => {
+            const imageKey = config.imageKey || 'imageUrl';
+            const labelKey = config.labelKey || 'label';
+            const descKey = config.descriptionKey || 'description';
+            const items = data.filter(d => d[imageKey]);
+            const [activeIndex, setActiveIndex] = useState(0);
+
+            if (items.length === 0) return React.createElement('div', { className: "p-20 text-center opacity-50" }, "No image data found.");
+
+            const activeItem = items[activeIndex];
+            const imageUrl = activeItem[imageKey];
+            const isIIIF = imageUrl.includes('/iiif/') || imageUrl.includes('iiif.io');
+            const resolvedUrl = isIIIF && !imageUrl.match(/\\.(jpg|jpeg|png|gif|webp)/i)
+              ? imageUrl.replace(/\\/$/, '') + '/full/800,/0/default.jpg'
+              : imageUrl;
+
+            return React.createElement('div', { className: "h-full w-full flex flex-col" }, [
+                React.createElement('div', { className: "p-8 pb-0 flex items-center justify-between" }, [
+                    React.createElement('h3', { className: "text-xl font-bold uppercase opacity-60" }, "Gallery"),
+                    React.createElement('span', { className: "text-xs font-bold opacity-40" }, (activeIndex + 1) + " / " + items.length)
+                ]),
+                React.createElement('div', { className: "flex-1 p-8 flex flex-col min-h-0" }, [
+                    React.createElement('div', { className: "flex-1 rounded-2xl overflow-hidden bg-black/5 shadow-inner relative min-h-0" },
+                        React.createElement('img', { src: resolvedUrl, alt: activeItem[labelKey] || 'Image', className: "w-full h-full object-contain" })
+                    ),
+                    React.createElement('div', { className: "mt-4 text-center" }, [
+                        React.createElement('p', { className: "text-sm font-bold" }, activeItem[labelKey] || 'Untitled'),
+                        activeItem[descKey] && React.createElement('p', { className: "text-xs opacity-70 mt-1" }, activeItem[descKey])
+                    ]),
+                    items.length > 1 && React.createElement('div', { className: "mt-4 flex items-center justify-center gap-2" },
+                        items.map((item, idx) => React.createElement('button', {
+                            key: idx, onClick: () => setActiveIndex(idx),
+                            className: "w-12 h-12 rounded-lg overflow-hidden border-2 transition-all " + (idx === activeIndex ? 'border-current opacity-100' : 'border-transparent opacity-40')
+                        }, React.createElement('img', { src: item[imageKey], alt: '', className: "w-full h-full object-cover" })))
+                    )
+                ])
+            ]);
+        };
+
         // --- VIEWER ENGINE ---
         const Viewer = ({ config, data }) => {
             const theme = THEMES[config.theme] || THEMES.classic;
@@ -280,6 +322,7 @@ const App: React.FC = () => {
                 if (activeSection.cardType === 'TIMELINE') return React.createElement(TimelineView, { data, config: activeSection.config, theme });
                 if (activeSection.cardType === 'STATISTICS') return React.createElement(ChartView, { data, config: activeSection.config, theme });
                 if (activeSection.cardType === 'NETWORK') return React.createElement(NetworkView, { data, config: activeSection.config, theme });
+                if (activeSection.cardType === 'GALLERY') return React.createElement(ImageView, { data, config: activeSection.config, theme });
                 return React.createElement('div', { className: "p-20 text-center opacity-30" }, "Visualization type not supported.");
             };
 

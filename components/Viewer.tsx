@@ -6,6 +6,7 @@ import TimelineView from './visualizations/TimelineView.tsx';
 import MapView from './visualizations/MapView.tsx';
 import NetworkView from './visualizations/NetworkView.tsx';
 import ChartView from './visualizations/ChartView.tsx';
+import ImageView from './visualizations/ImageView.tsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ExternalLink, Users, BookOpen } from 'lucide-react';
 
@@ -52,6 +53,8 @@ const Viewer: React.FC<ViewerProps> = ({ config, data }) => {
         return <NetworkView data={data} config={activeSection.config} theme={theme} />;
       case CardType.STATISTICS:
         return <ChartView data={data} config={activeSection.config} theme={theme} />;
+      case CardType.GALLERY:
+        return <ImageView data={data} config={activeSection.config} theme={theme} />;
       default:
         return <div className="flex items-center justify-center h-full text-zinc-400">Visualization not supported.</div>;
     }

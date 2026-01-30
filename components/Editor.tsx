@@ -2,11 +2,11 @@
 import React, { useState, useMemo } from 'react';
 import { SiteConfig, ThemeType, Section, CardType, HeritageDataItem, BibliographyEntry } from '../types';
 import { 
-  Plus, Trash2, Settings, Download, Upload, FileText, Layout, Palette, 
-  Info, Users, Link as LinkIcon, Github, Globe, CheckCircle2, 
-  ChevronDown, ChevronUp, Map as MapIcon, Calendar, Share2, 
+  Plus, Trash2, Settings, Download, Upload, FileText, Layout, Palette,
+  Info, Users, Link as LinkIcon, Github, Globe, CheckCircle2,
+  ChevronDown, ChevronUp, Map as MapIcon, Calendar, Share2,
   BarChart2, HelpCircle, BookOpen, Database, Zap, HardDrive, Package,
-  AlertCircle, ArrowRight, Layers
+  AlertCircle, ArrowRight, Layers, Image
 } from 'lucide-react';
 
 interface EditorProps {
@@ -228,17 +228,18 @@ const Editor: React.FC<EditorProps> = ({ config, data, onConfigChange, onDataCha
                       <div className="p-6 pt-2 border-t border-zinc-100 space-y-6 animate-in slide-in-from-top-1 duration-200">
                         <div className="grid grid-cols-2 gap-4">
                           <div><label className="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Section Heading</label><input type="text" value={section.title} onChange={(e) => updateSection(section.id, { title: e.target.value })} className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm" /></div>
-                          <div><label className="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Visualization Type</label><select value={section.cardType} onChange={(e) => updateSection(section.id, { cardType: e.target.value as CardType })} className="w-full px-3 py-2 border border-zinc-200 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm"><option value={CardType.TIMELINE}>Timeline View</option><option value={CardType.MAP}>Geographic Map</option><option value={CardType.NETWORK}>Network Graph</option><option value={CardType.STATISTICS}>Statistical Chart</option></select></div>
+                          <div><label className="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Visualization Type</label><select value={section.cardType} onChange={(e) => updateSection(section.id, { cardType: e.target.value as CardType })} className="w-full px-3 py-2 border border-zinc-200 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm"><option value={CardType.TIMELINE}>Timeline View</option><option value={CardType.MAP}>Geographic Map</option><option value={CardType.NETWORK}>Network Graph</option><option value={CardType.STATISTICS}>Statistical Chart</option><option value={CardType.GALLERY}>Image Gallery</option></select></div>
                         </div>
                         <div><label className="block text-[10px] font-bold text-zinc-400 uppercase mb-1">Historical Chronicle</label><textarea rows={4} value={section.content} onChange={(e) => updateSection(section.id, { content: e.target.value })} className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm leading-relaxed" placeholder="Interweave your analysis with the data points..." /></div>
                         <div className="bg-zinc-50 rounded-xl p-5 border border-zinc-100">
-                           <div className="flex items-center gap-2 mb-4 border-b border-zinc-200 pb-2">{section.cardType === CardType.MAP && <MapIcon size={16} className="text-indigo-500" />}{section.cardType === CardType.TIMELINE && <Calendar size={16} className="text-indigo-500" />}{section.cardType === CardType.NETWORK && <Share2 size={16} className="text-indigo-500" />}{section.cardType === CardType.STATISTICS && <BarChart2 size={16} className="text-indigo-500" />}<h4 className="text-[10px] font-bold uppercase text-zinc-500 tracking-wider">Mapping & Constraints</h4></div>
+                           <div className="flex items-center gap-2 mb-4 border-b border-zinc-200 pb-2">{section.cardType === CardType.MAP && <MapIcon size={16} className="text-indigo-500" />}{section.cardType === CardType.TIMELINE && <Calendar size={16} className="text-indigo-500" />}{section.cardType === CardType.NETWORK && <Share2 size={16} className="text-indigo-500" />}{section.cardType === CardType.STATISTICS && <BarChart2 size={16} className="text-indigo-500" />}{section.cardType === CardType.GALLERY && <Image size={16} className="text-indigo-500" />}<h4 className="text-[10px] font-bold uppercase text-zinc-500 tracking-wider">Mapping & Constraints</h4></div>
                            <div className="grid grid-cols-2 gap-y-4 gap-x-6">
                               <div><label className="block text-[10px] font-semibold text-zinc-500 mb-1">Display Label</label><select value={section.config.labelKey || ''} onChange={(e) => updateSectionConfig(section.id, 'labelKey', e.target.value)} className="w-full px-2 py-1.5 border border-zinc-200 rounded bg-white text-xs">{dataHeaders.map(h => <option key={h} value={h}>{h}</option>)}</select></div>
                               {section.cardType === CardType.TIMELINE && (<div><label className="block text-[10px] font-semibold text-zinc-500 mb-1">Date Column</label><select value={section.config.dateKey || ''} onChange={(e) => updateSectionConfig(section.id, 'dateKey', e.target.value)} className="w-full px-2 py-1.5 border border-zinc-200 rounded bg-white text-xs">{dataHeaders.map(h => <option key={h} value={h}>{h}</option>)}</select></div>)}
                               {section.cardType === CardType.MAP && (<><div className="col-span-1"><label className="block text-[10px] font-semibold text-zinc-500 mb-1">Latitude</label><select value={section.config.latKey || ''} onChange={(e) => updateSectionConfig(section.id, 'latKey', e.target.value)} className="w-full px-2 py-1.5 border border-zinc-200 rounded bg-white text-xs">{dataHeaders.map(h => <option key={h} value={h}>{h}</option>)}</select></div><div className="col-span-1"><label className="block text-[10px] font-semibold text-zinc-500 mb-1">Longitude</label><select value={section.config.lngKey || ''} onChange={(e) => updateSectionConfig(section.id, 'lngKey', e.target.value)} className="w-full px-2 py-1.5 border border-zinc-200 rounded bg-white text-xs">{dataHeaders.map(h => <option key={h} value={h}>{h}</option>)}</select></div><div><label className="block text-[10px] font-semibold text-zinc-500 mb-1">Base Map</label><select value={section.config.baseMap || 'terrain'} onChange={(e) => updateSectionConfig(section.id, 'baseMap', e.target.value)} className="w-full px-2 py-1.5 border border-zinc-200 rounded bg-white text-xs"><option value="terrain">Terrain</option><option value="toner">Toner</option><option value="satellite">Satellite</option><option value="voyager">Voyager</option></select></div></>)}
                               {section.cardType === CardType.NETWORK && (<div><label className="block text-[10px] font-semibold text-zinc-500 mb-1">Connections</label><select value={section.config.connectionsKey || ''} onChange={(e) => updateSectionConfig(section.id, 'connectionsKey', e.target.value)} className="w-full px-2 py-1.5 border border-zinc-200 rounded bg-white text-xs">{dataHeaders.map(h => <option key={h} value={h}>{h}</option>)}</select></div>)}
                               {section.cardType === CardType.STATISTICS && (<div><label className="block text-[10px] font-semibold text-zinc-500 mb-1">Category</label><select value={section.config.categoryKey || ''} onChange={(e) => updateSectionConfig(section.id, 'categoryKey', e.target.value)} className="w-full px-2 py-1.5 border border-zinc-200 rounded bg-white text-xs">{dataHeaders.map(h => <option key={h} value={h}>{h}</option>)}</select></div>)}
+                              {section.cardType === CardType.GALLERY && (<><div><label className="block text-[10px] font-semibold text-zinc-500 mb-1">Image URL Column</label><select value={section.config.imageKey || ''} onChange={(e) => updateSectionConfig(section.id, 'imageKey', e.target.value)} className="w-full px-2 py-1.5 border border-zinc-200 rounded bg-white text-xs">{dataHeaders.map(h => <option key={h} value={h}>{h}</option>)}</select></div><div><label className="block text-[10px] font-semibold text-zinc-500 mb-1">Description Column</label><select value={section.config.descriptionKey || ''} onChange={(e) => updateSectionConfig(section.id, 'descriptionKey', e.target.value)} className="w-full px-2 py-1.5 border border-zinc-200 rounded bg-white text-xs">{dataHeaders.map(h => <option key={h} value={h}>{h}</option>)}</select></div></>)}
                            </div>
                         </div>
                       </div>
@@ -253,9 +254,24 @@ const Editor: React.FC<EditorProps> = ({ config, data, onConfigChange, onDataCha
             <div className="space-y-6">
               <h2 className="text-xl font-bold text-zinc-800">Visual Aesthetic</h2>
               <div className="grid grid-cols-2 gap-4">
-                {(['classic', 'parchment', 'academic', 'dark'] as ThemeType[]).map((t) => (
-                  <button key={t} onClick={() => updateConfig({ theme: t })} className={`p-4 rounded-xl border-2 transition-all text-left ${config.theme === t ? 'border-indigo-600 bg-indigo-50 ring-4 ring-indigo-100' : 'border-zinc-200 bg-white hover:border-zinc-300'}`}><div className="capitalize font-bold text-zinc-900 mb-1">{t}</div><p className="text-xs text-zinc-500">{t === 'classic' && "Clean and modern baseline."}{t === 'parchment' && "Warm tones and serif fonts."}{t === 'academic' && "High contrast and structured."}{t === 'dark' && "Archival dark mode."}</p></button>
-                ))}
+                {(['classic', 'parchment', 'academic', 'dark', 'highcontrast', 'maritime', 'forest'] as ThemeType[]).map((t) => {
+                  const labels: Record<string, { name: string; desc: string }> = {
+                    classic: { name: "Classic", desc: "Clean and modern baseline." },
+                    parchment: { name: "Parchment", desc: "Warm tones and serif fonts." },
+                    academic: { name: "Academic", desc: "High contrast and structured." },
+                    dark: { name: "Dark", desc: "Archival dark mode." },
+                    highcontrast: { name: "High Contrast", desc: "WCAG AAA accessible. Maximum legibility." },
+                    maritime: { name: "Maritime", desc: "Deep navy with gold accents." },
+                    forest: { name: "Forest", desc: "Earthy greens and warm stone." },
+                  };
+                  const info = labels[t];
+                  return (
+                    <button key={t} onClick={() => updateConfig({ theme: t })} className={`p-4 rounded-xl border-2 transition-all text-left ${config.theme === t ? 'border-indigo-600 bg-indigo-50 ring-4 ring-indigo-100' : 'border-zinc-200 bg-white hover:border-zinc-300'}`}>
+                      <div className="font-bold text-zinc-900 mb-1">{info.name}</div>
+                      <p className="text-xs text-zinc-500">{info.desc}</p>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
