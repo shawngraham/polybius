@@ -1,5 +1,5 @@
 
-Chronos Weaver is a **Static Site Generator (SSG)** tailored for Digital Humanities. It bridges the gap between raw spreadsheet data and immersive narrative. You provide the historical evidence (CSV), we provide the interactive loom.
+Polybius is a **Static Site Generator (SSG)** tailored for Digital Humanities. It bridges the gap between raw spreadsheet data and immersive narrative. You provide the historical evidence (CSV), we provide the interactive loom.
 
 ## Run Locally
 

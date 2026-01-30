@@ -17,8 +17,8 @@ const App: React.FC = () => {
 
   // Load from local storage if available
   useEffect(() => {
-    const saved = localStorage.getItem('chronos_weaver_config');
-    const savedData = localStorage.getItem('chronos_weaver_data');
+    const saved = localStorage.getItem('polybius_config');
+    const savedData = localStorage.getItem('polybius_data');
     if (saved) {
       try {
         setConfig(JSON.parse(saved));
@@ -37,12 +37,12 @@ const App: React.FC = () => {
 
   const handleSave = (newConfig: SiteConfig) => {
     setConfig(newConfig);
-    localStorage.setItem('chronos_weaver_config', JSON.stringify(newConfig));
+    localStorage.setItem('polybius_config', JSON.stringify(newConfig));
   };
 
   const handleDataUpdate = (newData: HeritageDataItem[]) => {
     setData(newData);
-    localStorage.setItem('chronos_weaver_data', JSON.stringify(newData));
+    localStorage.setItem('polybius_data', JSON.stringify(newData));
   };
 
   const handleGenerate = async () => {
@@ -63,7 +63,7 @@ const App: React.FC = () => {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${config.title} | Chronos Weaver Export</title>
+    <title>${config.title} | Polybius Export</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
@@ -313,7 +313,7 @@ const App: React.FC = () => {
                 ]),
                 React.createElement('footer', { className: "py-20 text-center border-t border-current/10 opacity-60" }, [
                     React.createElement('h2', { className: "text-2xl font-bold" }, config.title),
-                    React.createElement('p', { className: "text-xs mt-2 uppercase tracking-widest" }, "Powered by Chronos Weaver")
+                    React.createElement('p', { className: "text-xs mt-2 uppercase tracking-widest" }, "Powered by Polybius")
                 ])
             ]);
         };
@@ -334,7 +334,7 @@ const App: React.FC = () => {
 </html>`;
 
       zip.file("index.html", viewerHtml);
-      zip.file("README.txt", `CHRONOS WEAVER STANDALONE EXPORT\nGenerated: ${new Date().toLocaleString()}`);
+      zip.file("README.txt", `POLYBIUS STANDALONE EXPORT\nGenerated: ${new Date().toLocaleString()}`);
 
       const content = await zip.generateAsync({ type: "blob" });
       const url = URL.createObjectURL(content);
@@ -361,9 +361,9 @@ const App: React.FC = () => {
       <div className="fixed top-0 left-0 right-0 h-12 bg-white border-b border-zinc-200 flex items-center justify-between px-4 z-50">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 bg-indigo-600 rounded rotate-45 flex items-center justify-center">
-            <span className="text-white text-[10px] font-bold -rotate-45">CW</span>
+            <span className="text-white text-[10px] font-bold -rotate-45">PB</span>
           </div>
-          <span className="font-bold text-sm tracking-tight">Chronos Weaver</span>
+          <span className="font-bold text-sm tracking-tight">Polybius</span>
         </div>
         
         <div className="flex items-center gap-4">

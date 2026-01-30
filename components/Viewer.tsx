@@ -106,7 +106,7 @@ const Viewer: React.FC<ViewerProps> = ({ config, data }) => {
                     <Users size={14} /> Credits & Acknowledgments
                   </h3>
                   <p className="text-sm leading-relaxed italic">
-                    {config.collaborators || "This project was developed independently using the Chronos Weaver Engine."}
+                    {config.collaborators || "This project was developed independently using the Polybius Engine."}
                   </p>
                 </div>
 
@@ -155,7 +155,7 @@ const Viewer: React.FC<ViewerProps> = ({ config, data }) => {
       <footer className="py-20 text-center border-t border-current/10 opacity-60">
         <h2 className="text-2xl font-bold mb-2">{config.title}</h2>
         <p className="text-sm italic opacity-80 mb-8">{config.subtitle}</p>
-        <div className="text-[9px] uppercase tracking-tighter opacity-40">Powered by Chronos Weaver</div>
+        <div className="text-[9px] uppercase tracking-tighter opacity-40">Powered by Polybius</div>
       </footer>
     </div>
   );
