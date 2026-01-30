@@ -276,7 +276,7 @@ const Editor: React.FC<EditorProps> = ({ config, data, onConfigChange, onDataCha
               <header className="border-b border-zinc-200 pb-8">
                 <h2 className="text-4xl font-black text-zinc-900 mb-3 tracking-tighter">Project Manual</h2>
                 <p className="text-zinc-500 text-lg leading-relaxed max-w-2xl">
-                  Chronos Weaver is a **Static Site Generator (SSG)** purpose-built for Digital Humanities scholars to transform archival datasets into immersive historical narratives.
+                  Polybius is a **Static Site Generator (SSG)** purpose-built for Digital Humanities scholars to transform archival datasets into immersive historical narratives.
                 </p>
               </header>
 
