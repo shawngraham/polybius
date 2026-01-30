@@ -83,10 +83,38 @@ const Viewer: React.FC<ViewerProps> = ({ config, data }) => {
       </header>
 
       {/* Scrollytelling Section */}
+      {(() => {
+        const isTextActive = activeSection?.cardType === CardType.TEXT;
+        const vizAlignClass = activeSection?.vizAlignment === 'left' ? 'justify-start' : activeSection?.vizAlignment === 'right' ? 'justify-end' : 'justify-center';
+        return (
       <div className="relative flex flex-col md:flex-row">
-        <div className="w-full md:w-1/2 relative z-10 px-6 pb-[10vh]">
+        <div className={`relative z-10 px-6 pb-[10vh] transition-all duration-700 ${isTextActive ? 'w-full' : 'w-full md:w-1/2'}`}>
           {config.sections.map((section) => {
             const alignClass = section.alignment === 'right' ? 'justify-end' : section.alignment === 'center' ? 'justify-center' : 'justify-start';
+
+            if (section.cardType === CardType.TEXT) {
+              const textAlignClass = section.config.textAlign === 'center' ? 'text-center' : section.config.textAlign === 'right' ? 'text-right' : section.config.textAlign === 'justify' ? 'text-justify' : 'text-left';
+              return (
+                <div
+                  key={section.id}
+                  ref={(el) => { sectionRefs.current[section.id] = el; }}
+                  data-section-id={section.id}
+                  className={`min-h-[80vh] flex items-center ${alignClass} py-20 transition-opacity duration-500 ${
+                    activeSectionId === section.id ? 'opacity-100' : 'opacity-20'
+                  }`}
+                >
+                  <div className={`max-w-4xl w-full p-12 rounded-2xl shadow-xl border ${theme.card} backdrop-blur-sm ${textAlignClass}`}>
+                    <h2 className="text-3xl font-bold mb-6 border-b pb-2 inline-block border-current/20">
+                      {section.title}
+                    </h2>
+                    <p className="text-xl leading-relaxed whitespace-pre-wrap opacity-90">
+                      {section.content}
+                    </p>
+                  </div>
+                </div>
+              );
+            }
+
             return (
             <div
               key={section.id}
@@ -139,11 +167,11 @@ const Viewer: React.FC<ViewerProps> = ({ config, data }) => {
         </div>
 
         {/* Sticky Visualization */}
-        <div className="hidden md:block w-1/2 h-screen sticky top-0 right-0 overflow-hidden pointer-events-none md:pointer-events-auto">
-          <div className="h-full w-full p-8 flex items-center justify-center">
+        <div className={`hidden md:block w-1/2 h-screen sticky top-0 right-0 overflow-hidden pointer-events-none md:pointer-events-auto transition-all duration-700 ${isTextActive ? 'opacity-0 w-0 p-0' : 'opacity-100'}`}>
+          <div className={`h-full w-full p-8 flex items-center ${vizAlignClass} transition-all duration-700`}>
              <div className={`w-full h-[85vh] rounded-3xl overflow-hidden shadow-2xl border ${theme.card} transition-all duration-700 relative`}>
                <AnimatePresence mode="wait">
-                 {activeSection && (
+                 {activeSection && activeSection.cardType !== CardType.TEXT && (
                    <motion.div
                       key={activeSectionId}
                       initial={{ opacity: 0, scale: 0.98 }}
@@ -160,6 +188,8 @@ const Viewer: React.FC<ViewerProps> = ({ config, data }) => {
           </div>
         </div>
       </div>
+        );
+      })()}
 
       <footer className="py-20 text-center border-t border-current/10 opacity-60">
         <h2 className="text-2xl font-bold mb-2">{config.title}</h2>

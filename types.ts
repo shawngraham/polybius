@@ -7,10 +7,12 @@ export enum CardType {
   NETWORK = 'NETWORK',
   STATISTICS = 'STATISTICS',
   GALLERY = 'GALLERY',
-  IMAGE = 'IMAGE'
+  IMAGE = 'IMAGE',
+  TEXT = 'TEXT'
 }
 
 export type CardAlignment = 'left' | 'center' | 'right';
+export type TextAlignment = 'left' | 'center' | 'right' | 'justify';
 
 export interface BibliographyEntry {
   id: string;
@@ -24,6 +26,7 @@ export interface Section {
   content: string;
   cardType: CardType;
   alignment?: CardAlignment;
+  vizAlignment?: CardAlignment;
   config: Record<string, any>;
 }
 

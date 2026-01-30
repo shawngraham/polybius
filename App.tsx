@@ -348,9 +348,11 @@ const App: React.FC = () => {
             }, []);
 
             const activeSection = config.sections.find(s => s.id === activeId);
+            const isTextActive = activeSection && activeSection.cardType === 'TEXT';
 
             const renderViz = () => {
                 if (!activeSection) return null;
+                if (activeSection.cardType === 'TEXT') return null;
                 if (activeSection.cardType === 'MAP') return React.createElement(MapView, { data, config: activeSection.config, theme });
                 if (activeSection.cardType === 'TIMELINE') return React.createElement(TimelineView, { data, config: activeSection.config, theme });
                 if (activeSection.cardType === 'STATISTICS') return React.createElement(ChartView, { data, config: activeSection.config, theme });
@@ -359,6 +361,8 @@ const App: React.FC = () => {
                 if (activeSection.cardType === 'IMAGE') return React.createElement(SingleImageView, { data, config: activeSection.config, theme });
                 return React.createElement('div', { className: "p-20 text-center opacity-30" }, "Visualization type not supported.");
             };
+
+            const vizAlignCls = activeSection && activeSection.vizAlignment === 'left' ? 'justify-start' : activeSection && activeSection.vizAlignment === 'right' ? 'justify-end' : 'justify-center';
 
             return React.createElement('div', { className: "min-h-screen transition-colors duration-700 " + theme.bg + " " + theme.text + " " + theme.font }, [
                 React.createElement('header', { className: "h-[70vh] flex flex-col items-center justify-center text-center px-6" }, [
@@ -370,8 +374,17 @@ const App: React.FC = () => {
                     ])
                 ]),
                 React.createElement('div', { className: "relative flex flex-col md:flex-row" }, [
-                    React.createElement('div', { className: "w-full md:w-1/2 px-6 pb-20" }, config.sections.map(s => {
+                    React.createElement('div', { className: "px-6 pb-20 transition-all duration-700 " + (isTextActive ? "w-full" : "w-full md:w-1/2") }, config.sections.map(s => {
                         const alignCls = s.alignment === 'right' ? 'justify-end' : s.alignment === 'center' ? 'justify-center' : 'justify-start';
+                        if (s.cardType === 'TEXT') {
+                            const taCls = s.config.textAlign === 'center' ? 'text-center' : s.config.textAlign === 'right' ? 'text-right' : s.config.textAlign === 'justify' ? 'text-justify' : 'text-left';
+                            return React.createElement('div', { key: s.id, ref: el => sectionRefs.current[s.id] = el, 'data-id': s.id, className: "min-h-[80vh] flex items-center " + alignCls + " py-20 transition-opacity duration-500 " + (activeId === s.id ? 'opacity-100' : 'opacity-20') },
+                                React.createElement('div', { className: "max-w-4xl w-full p-12 rounded-2xl shadow-xl border " + theme.card + " " + taCls }, [
+                                    React.createElement('h2', { className: "text-3xl font-bold mb-6" }, s.title),
+                                    React.createElement('p', { className: "text-xl leading-relaxed whitespace-pre-wrap" }, s.content)
+                                ])
+                            );
+                        }
                         return React.createElement('div', { key: s.id, ref: el => sectionRefs.current[s.id] = el, 'data-id': s.id, className: "min-h-[80vh] flex items-center " + alignCls + " py-20 transition-opacity duration-500 " + (activeId === s.id ? 'opacity-100' : 'opacity-20') },
                             React.createElement('div', { className: "max-w-lg p-8 rounded-2xl shadow-xl border " + theme.card }, [
                                 React.createElement('h2', { className: "text-3xl font-bold mb-6" }, s.title),
@@ -379,11 +392,11 @@ const App: React.FC = () => {
                             ])
                         );
                     })),
-                    React.createElement('div', { className: "hidden md:block w-1/2 h-screen sticky top-0" }, 
-                        React.createElement('div', { className: "h-full p-8 flex items-center justify-center" }, 
-                            React.createElement('div', { className: "w-full h-[85vh] rounded-3xl overflow-hidden shadow-2xl border bg-white relative " + theme.card }, 
-                                React.createElement(AnimatePresence, { mode: 'wait' }, 
-                                    activeSection && React.createElement(motion.div, { key: activeId, initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, className: "absolute inset-0" }, renderViz())
+                    React.createElement('div', { className: "hidden md:block w-1/2 h-screen sticky top-0 transition-all duration-700 " + (isTextActive ? "opacity-0 w-0 p-0" : "opacity-100") },
+                        React.createElement('div', { className: "h-full p-8 flex items-center transition-all duration-700 " + vizAlignCls },
+                            React.createElement('div', { className: "w-full h-[85vh] rounded-3xl overflow-hidden shadow-2xl border relative " + theme.card },
+                                React.createElement(AnimatePresence, { mode: 'wait' },
+                                    activeSection && activeSection.cardType !== 'TEXT' && React.createElement(motion.div, { key: activeId, initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, className: "absolute inset-0" }, renderViz())
                                 )
                             )
                         )
