@@ -103,7 +103,7 @@ const Viewer: React.FC<ViewerProps> = ({ config, data }) => {
                     activeSectionId === section.id ? 'opacity-100' : 'opacity-20'
                   }`}
                 >
-                  <div className={`max-w-4xl w-full p-12 rounded-2xl shadow-xl border ${theme.card} backdrop-blur-sm ${textAlignClass}`}>
+                  <div className={`w-full p-12 rounded-2xl shadow-xl border ${theme.card} backdrop-blur-sm ${textAlignClass}`}>
                     <h2 className="text-3xl font-bold mb-6 border-b pb-2 inline-block border-current/20">
                       {section.title}
                     </h2>

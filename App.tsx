@@ -379,7 +379,7 @@ const App: React.FC = () => {
                         if (s.cardType === 'TEXT') {
                             const taCls = s.config.textAlign === 'center' ? 'text-center' : s.config.textAlign === 'right' ? 'text-right' : s.config.textAlign === 'justify' ? 'text-justify' : 'text-left';
                             return React.createElement('div', { key: s.id, ref: el => sectionRefs.current[s.id] = el, 'data-id': s.id, className: "min-h-[80vh] flex items-center " + alignCls + " py-20 transition-opacity duration-500 " + (activeId === s.id ? 'opacity-100' : 'opacity-20') },
-                                React.createElement('div', { className: "max-w-4xl w-full p-12 rounded-2xl shadow-xl border " + theme.card + " " + taCls }, [
+                                React.createElement('div', { className: "w-full p-12 rounded-2xl shadow-xl border " + theme.card + " " + taCls }, [
                                     React.createElement('h2', { className: "text-3xl font-bold mb-6" }, s.title),
                                     React.createElement('p', { className: "text-xl leading-relaxed whitespace-pre-wrap" }, s.content)
                                 ])
