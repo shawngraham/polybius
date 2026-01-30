@@ -298,6 +298,39 @@ const App: React.FC = () => {
             ]);
         };
 
+        const SingleImageView = ({ data, config, theme }) => {
+            const imageKey = config.imageKey || 'imageUrl';
+            const labelKey = config.labelKey || 'label';
+            const descKey = config.descriptionKey || 'description';
+            const itemIndex = config.itemIndex ?? 0;
+            const items = data.filter(d => d[imageKey]);
+
+            if (items.length === 0) return React.createElement('div', { className: "p-20 text-center opacity-50" }, "No image data found.");
+
+            const clampedIndex = Math.min(itemIndex, items.length - 1);
+            const item = items[clampedIndex];
+            const imageUrl = item[imageKey];
+            const isIIIF = imageUrl.includes('/iiif/') || imageUrl.includes('iiif.io');
+            const resolvedUrl = isIIIF && !imageUrl.match(/\\.(jpg|jpeg|png|gif|webp)/i)
+              ? imageUrl.replace(/\\/$/, '') + '/full/800,/0/default.jpg'
+              : imageUrl;
+
+            return React.createElement('div', { className: "h-full w-full flex flex-col" }, [
+                React.createElement('div', { className: "p-8 pb-0" },
+                    React.createElement('h3', { className: "text-xl font-bold uppercase opacity-60" }, "Image")
+                ),
+                React.createElement('div', { className: "flex-1 p-8 flex flex-col min-h-0" }, [
+                    React.createElement('div', { className: "flex-1 rounded-2xl overflow-hidden bg-black/5 shadow-inner relative min-h-0" },
+                        React.createElement('img', { src: resolvedUrl, alt: item[labelKey] || 'Image', className: "w-full h-full object-contain" })
+                    ),
+                    React.createElement('div', { className: "mt-4 text-center" }, [
+                        React.createElement('p', { className: "text-sm font-bold" }, item[labelKey] || 'Untitled'),
+                        item[descKey] && React.createElement('p', { className: "text-xs opacity-70 mt-1" }, item[descKey])
+                    ])
+                ])
+            ]);
+        };
+
         // --- VIEWER ENGINE ---
         const Viewer = ({ config, data }) => {
             const theme = THEMES[config.theme] || THEMES.classic;
@@ -323,6 +356,7 @@ const App: React.FC = () => {
                 if (activeSection.cardType === 'STATISTICS') return React.createElement(ChartView, { data, config: activeSection.config, theme });
                 if (activeSection.cardType === 'NETWORK') return React.createElement(NetworkView, { data, config: activeSection.config, theme });
                 if (activeSection.cardType === 'GALLERY') return React.createElement(ImageView, { data, config: activeSection.config, theme });
+                if (activeSection.cardType === 'IMAGE') return React.createElement(SingleImageView, { data, config: activeSection.config, theme });
                 return React.createElement('div', { className: "p-20 text-center opacity-30" }, "Visualization type not supported.");
             };
 
@@ -336,14 +370,15 @@ const App: React.FC = () => {
                     ])
                 ]),
                 React.createElement('div', { className: "relative flex flex-col md:flex-row" }, [
-                    React.createElement('div', { className: "w-full md:w-1/2 px-6 pb-20" }, config.sections.map(s => 
-                        React.createElement('div', { key: s.id, ref: el => sectionRefs.current[s.id] = el, 'data-id': s.id, className: "min-h-[80vh] flex items-center justify-center py-20 transition-opacity duration-500 " + (activeId === s.id ? 'opacity-100' : 'opacity-20') }, 
+                    React.createElement('div', { className: "w-full md:w-1/2 px-6 pb-20" }, config.sections.map(s => {
+                        const alignCls = s.alignment === 'right' ? 'justify-end' : s.alignment === 'center' ? 'justify-center' : 'justify-start';
+                        return React.createElement('div', { key: s.id, ref: el => sectionRefs.current[s.id] = el, 'data-id': s.id, className: "min-h-[80vh] flex items-center " + alignCls + " py-20 transition-opacity duration-500 " + (activeId === s.id ? 'opacity-100' : 'opacity-20') },
                             React.createElement('div', { className: "max-w-lg p-8 rounded-2xl shadow-xl border " + theme.card }, [
                                 React.createElement('h2', { className: "text-3xl font-bold mb-6" }, s.title),
                                 React.createElement('p', { className: "text-lg leading-relaxed whitespace-pre-wrap" }, s.content)
                             ])
-                        )
-                    )),
+                        );
+                    })),
                     React.createElement('div', { className: "hidden md:block w-1/2 h-screen sticky top-0" }, 
                         React.createElement('div', { className: "h-full p-8 flex items-center justify-center" }, 
                             React.createElement('div', { className: "w-full h-[85vh] rounded-3xl overflow-hidden shadow-2xl border bg-white relative " + theme.card }, 

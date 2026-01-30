@@ -7,6 +7,7 @@ import MapView from './visualizations/MapView.tsx';
 import NetworkView from './visualizations/NetworkView.tsx';
 import ChartView from './visualizations/ChartView.tsx';
 import ImageView from './visualizations/ImageView.tsx';
+import SingleImageView from './visualizations/SingleImageView.tsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ExternalLink, Users, BookOpen } from 'lucide-react';
 
@@ -55,6 +56,8 @@ const Viewer: React.FC<ViewerProps> = ({ config, data }) => {
         return <ChartView data={data} config={activeSection.config} theme={theme} />;
       case CardType.GALLERY:
         return <ImageView data={data} config={activeSection.config} theme={theme} />;
+      case CardType.IMAGE:
+        return <SingleImageView data={data} config={activeSection.config} theme={theme} />;
       default:
         return <div className="flex items-center justify-center h-full text-zinc-400">Visualization not supported.</div>;
     }
@@ -82,12 +85,14 @@ const Viewer: React.FC<ViewerProps> = ({ config, data }) => {
       {/* Scrollytelling Section */}
       <div className="relative flex flex-col md:flex-row">
         <div className="w-full md:w-1/2 relative z-10 px-6 pb-[10vh]">
-          {config.sections.map((section) => (
-            <div 
+          {config.sections.map((section) => {
+            const alignClass = section.alignment === 'right' ? 'justify-end' : section.alignment === 'center' ? 'justify-center' : 'justify-start';
+            return (
+            <div
               key={section.id}
               ref={(el) => { sectionRefs.current[section.id] = el; }}
               data-section-id={section.id}
-              className={`min-h-[80vh] flex items-center justify-center py-20 transition-opacity duration-500 ${
+              className={`min-h-[80vh] flex items-center ${alignClass} py-20 transition-opacity duration-500 ${
                 activeSectionId === section.id ? 'opacity-100' : 'opacity-20'
               }`}
             >
@@ -100,7 +105,8 @@ const Viewer: React.FC<ViewerProps> = ({ config, data }) => {
                 </p>
               </div>
             </div>
-          ))}
+            );
+          })}
 
           <div className="min-h-[50vh] flex flex-col justify-end py-20">
              <div className={`max-w-lg p-8 rounded-2xl border ${theme.card} opacity-80`}>
