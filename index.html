@@ -9,14 +9,20 @@
     <!-- Dynamic Base Path for GitHub Pages Subfolders -->
     <script>
       (function() {
-        const path = window.location.pathname;
-        const isGhPages = window.location.hostname.includes('github.io');
+        const hostname = window.location.hostname;
+        const pathname = window.location.pathname;
+        const isGhPages = hostname.includes('github.io');
+        
         if (isGhPages) {
-          // Extracts the repository name from the first path segment
-          const repo = path.split('/')[1];
-          if (repo && repo !== '' && !repo.includes('.')) {
+          // GitHub Pages usually hosts at /repo-name/
+          // We extract the first part of the path as the base
+          const segments = pathname.split('/').filter(Boolean);
+          if (segments.length > 0) {
+            const repoName = segments[0];
+            // Only set base if we are likely in a project site (not a user site root)
+            // User sites are username.github.io/, project sites are username.github.io/project/
             const base = document.createElement('base');
-            base.href = '/' + repo + '/';
+            base.href = '/' + repoName + '/';
             document.head.appendChild(base);
           }
         }
@@ -78,10 +84,10 @@
   }
 }
 </script>
-<link rel="stylesheet" href="/polybius/index.css">
 </head>
 <body>
     <div id="root"></div>
-<script type="module" src="/polybius/index.tsx"></script>
+    <!-- Use a relative path to ensure the module is loaded correctly in subdirectories -->
+    <script type="module" src="./index.tsx"></script>
 </body>
 </html>
