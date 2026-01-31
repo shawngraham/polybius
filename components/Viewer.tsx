@@ -42,22 +42,23 @@ const Viewer: React.FC<ViewerProps> = ({ config, data }) => {
 
   const activeSection = config.sections.find(s => s.id === activeSectionId);
 
-  const renderVisualization = () => {
-    if (!activeSection) return null;
+  const renderVisualization = (sectionConfig?: any) => {
+    const sec = sectionConfig || activeSection;
+    if (!sec) return null;
 
-    switch (activeSection.cardType) {
+    switch (sec.cardType) {
       case CardType.TIMELINE:
-        return <TimelineView data={data} config={activeSection.config} theme={theme} />;
+        return <TimelineView data={data} config={sec.config} theme={theme} />;
       case CardType.MAP:
-        return <MapView data={data} config={activeSection.config} theme={theme} />;
+        return <MapView data={data} config={sec.config} theme={theme} />;
       case CardType.NETWORK:
-        return <NetworkView data={data} config={activeSection.config} theme={theme} />;
+        return <NetworkView data={data} config={sec.config} theme={theme} />;
       case CardType.STATISTICS:
-        return <ChartView data={data} config={activeSection.config} theme={theme} />;
+        return <ChartView data={data} config={sec.config} theme={theme} />;
       case CardType.GALLERY:
-        return <ImageView data={data} config={activeSection.config} theme={theme} />;
+        return <ImageView data={data} config={sec.config} theme={theme} />;
       case CardType.IMAGE:
-        return <SingleImageView data={data} config={activeSection.config} theme={theme} />;
+        return <SingleImageView data={data} config={sec.config} theme={theme} />;
       default:
         return <div className="flex items-center justify-center h-full text-zinc-400">Visualization not supported.</div>;
     }
@@ -67,19 +68,19 @@ const Viewer: React.FC<ViewerProps> = ({ config, data }) => {
     <div className={`min-h-screen ${theme.bg} ${theme.text} ${theme.font} transition-colors duration-700`}>
       <style>{`::selection { background-color: ${theme.accentHex}33; }`}</style>
       {/* Header */}
-      <header className="h-[70vh] flex flex-col items-center justify-center text-center px-6 relative overflow-hidden">
+      <header className="h-[50vh] md:h-[70vh] flex flex-col items-center justify-center text-center px-4 md:px-6 relative overflow-hidden">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1 }}
           className="z-10"
         >
-          <h1 className="text-5xl md:text-7xl font-bold mb-4 tracking-tight leading-tight">{config.title}</h1>
-          <div className="h-1 w-24 rounded-full mx-auto mt-2 mb-6" style={{ backgroundColor: theme.accentHex }} />
-          <p className="text-xl md:text-2xl opacity-80 mb-8 max-w-2xl mx-auto italic">{config.subtitle}</p>
+          <h1 className="text-3xl sm:text-5xl md:text-7xl font-bold mb-4 tracking-tight leading-tight">{config.title}</h1>
+          <div className="h-1 w-24 rounded-full mx-auto mt-2 mb-4 md:mb-6" style={{ backgroundColor: theme.accentHex }} />
+          <p className="text-base sm:text-xl md:text-2xl opacity-80 mb-6 md:mb-8 max-w-2xl mx-auto italic">{config.subtitle}</p>
           <div className="flex flex-col items-center gap-2">
-            <span className="text-sm font-bold tracking-widest uppercase opacity-60">Authored by</span>
-            <span className="text-lg font-medium underline underline-offset-8 decoration-1 decoration-current/30">{config.author}</span>
+            <span className="text-xs sm:text-sm font-bold tracking-widest uppercase opacity-60">Authored by</span>
+            <span className="text-base sm:text-lg font-medium underline underline-offset-8 decoration-1 decoration-current/30">{config.author}</span>
           </div>
         </motion.div>
         <motion.div
@@ -98,9 +99,10 @@ const Viewer: React.FC<ViewerProps> = ({ config, data }) => {
         const vizAlignClass = activeSection?.vizAlignment === 'left' ? 'justify-start' : activeSection?.vizAlignment === 'right' ? 'justify-end' : 'justify-center';
         return (
       <div className="relative flex flex-col md:flex-row">
-        <div className={`relative z-10 px-6 pb-[10vh] transition-all duration-700 ${isTextActive ? 'w-full' : 'w-full md:w-1/2'}`}>
+        <div className={`relative z-10 px-4 md:px-6 pb-[10vh] transition-all duration-700 ${isTextActive ? 'w-full' : 'w-full md:w-1/2'}`}>
           {config.sections.map((section) => {
             const alignClass = section.alignment === 'right' ? 'justify-end' : section.alignment === 'center' ? 'justify-center' : 'justify-start';
+            const isMobileViz = section.cardType !== CardType.TEXT;
 
             if (section.cardType === CardType.TEXT) {
               const textAlignClass = section.config.textAlign === 'center' ? 'text-center' : section.config.textAlign === 'right' ? 'text-right' : section.config.textAlign === 'justify' ? 'text-justify' : 'text-left';
@@ -111,15 +113,15 @@ const Viewer: React.FC<ViewerProps> = ({ config, data }) => {
                   key={section.id}
                   ref={(el) => { sectionRefs.current[section.id] = el; }}
                   data-section-id={section.id}
-                  className={`min-h-[80vh] flex items-center ${isFull ? 'justify-center' : alignClass} py-20 transition-opacity duration-500 ${
-                    activeSectionId === section.id ? 'opacity-100' : 'opacity-20'
+                  className={`min-h-[60vh] md:min-h-[80vh] flex items-center ${alignClass} py-10 md:py-20 transition-opacity duration-500 ${
+                    activeSectionId === section.id ? 'opacity-100' : 'md:opacity-20 opacity-100'
                   }`}
                 >
-                  <div className={`${textWidthClass} p-12 rounded-2xl border border-t-4 ${theme.card} ${theme.cardShadow} backdrop-blur-sm ${textAlignClass}`} style={{ borderTopColor: theme.accentHex }}>
-                    <h2 className={`text-3xl font-bold mb-6 border-b pb-2 inline-block border-current/20 ${theme.headingColor}`}>
+                  <div className={`w-full p-6 sm:p-8 md:p-12 rounded-2xl border border-t-4 ${theme.card} ${theme.cardShadow} backdrop-blur-sm ${textAlignClass}`} style={{ borderTopColor: theme.accentHex }}>
+                    <h2 className={`text-xl sm:text-2xl md:text-3xl font-bold mb-4 md:mb-6 border-b pb-2 inline-block border-current/20 ${theme.headingColor}`}>
                       {section.title}
                     </h2>
-                    <p className="text-xl leading-relaxed whitespace-pre-wrap opacity-90">
+                    <p className="text-base sm:text-lg md:text-xl leading-relaxed whitespace-pre-wrap opacity-90">
                       {section.content}
                     </p>
                   </div>
@@ -128,28 +130,37 @@ const Viewer: React.FC<ViewerProps> = ({ config, data }) => {
             }
 
             return (
-            <div
-              key={section.id}
-              ref={(el) => { sectionRefs.current[section.id] = el; }}
-              data-section-id={section.id}
-              className={`min-h-[80vh] flex items-center ${alignClass} py-20 transition-opacity duration-500 ${
-                activeSectionId === section.id ? 'opacity-100' : 'opacity-20'
-              }`}
-            >
-              <div className={`max-w-lg p-8 rounded-2xl border border-t-4 ${theme.card} ${theme.cardShadow} backdrop-blur-sm`} style={{ borderTopColor: theme.accentHex }}>
-                <h2 className={`text-3xl font-bold mb-6 border-b pb-2 inline-block border-current/20 ${theme.headingColor}`}>
-                  {section.title}
-                </h2>
-                <p className="text-lg leading-relaxed whitespace-pre-wrap opacity-90">
-                  {section.content}
-                </p>
+              <div key={section.id}>
+                <div
+                  ref={(el) => { sectionRefs.current[section.id] = el; }}
+                  data-section-id={section.id}
+                  className={`min-h-[40vh] md:min-h-[80vh] flex items-center ${alignClass} py-10 md:py-20 transition-opacity duration-500 ${
+                    activeSectionId === section.id ? 'opacity-100' : 'md:opacity-20 opacity-100'
+                  }`}
+                >
+                  <div className={`w-full md:max-w-lg p-6 sm:p-8 rounded-2xl border border-t-4 ${theme.card} ${theme.cardShadow} backdrop-blur-sm`} style={{ borderTopColor: theme.accentHex }}>
+                    <h2 className={`text-xl sm:text-2xl md:text-3xl font-bold mb-4 md:mb-6 border-b pb-2 inline-block border-current/20 ${theme.headingColor}`}>
+                      {section.title}
+                    </h2>
+                    <p className="text-base md:text-lg leading-relaxed whitespace-pre-wrap opacity-90">
+                      {section.content}
+                    </p>
+                  </div>
+                </div>
+                {/* Mobile inline visualization */}
+                {isMobileViz && (
+                  <div className="md:hidden mb-8 -mt-4">
+                    <div className={`w-full h-[60vh] rounded-2xl overflow-hidden border ${theme.card} ${theme.cardShadow}`}>
+                      {renderVisualization(section)}
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
             );
           })}
 
-          <div className="min-h-[50vh] flex flex-col justify-end py-20">
-             <div className={`max-w-lg p-8 rounded-2xl border ${theme.card} opacity-80`}>
+          <div className="min-h-[30vh] md:min-h-[50vh] flex flex-col justify-end py-10 md:py-20">
+             <div className={`max-w-lg p-6 sm:p-8 rounded-2xl border ${theme.card} opacity-80`}>
                 <div className="mb-8">
                   <h3 className="text-xs font-bold uppercase tracking-[0.2em] mb-4 flex items-center gap-2 opacity-60">
                     <Users size={14} /> Credits & Acknowledgments
@@ -178,7 +189,7 @@ const Viewer: React.FC<ViewerProps> = ({ config, data }) => {
           </div>
         </div>
 
-        {/* Sticky Visualization */}
+        {/* Sticky Visualization (desktop only) */}
         <div className={`hidden md:block w-1/2 h-screen sticky top-0 right-0 overflow-hidden pointer-events-none md:pointer-events-auto transition-all duration-700 ${isTextActive ? 'opacity-0 w-0 p-0' : 'opacity-100'}`}>
           <div className={`h-full w-full p-8 flex items-center ${vizAlignClass} transition-all duration-700`}>
              <div className={`w-full h-[85vh] rounded-3xl overflow-hidden border ${theme.card} ${theme.cardShadow} transition-all duration-700 relative`}>
@@ -203,10 +214,10 @@ const Viewer: React.FC<ViewerProps> = ({ config, data }) => {
         );
       })()}
 
-      <footer className="py-20 text-center opacity-60">
-        <div className="h-px w-32 mx-auto mb-12" style={{ backgroundColor: theme.accentHex }} />
-        <h2 className="text-2xl font-bold mb-2">{config.title}</h2>
-        <p className="text-sm italic opacity-80 mb-8">{config.subtitle}</p>
+      <footer className="py-12 md:py-20 text-center opacity-60 px-4">
+        <div className="h-px w-32 mx-auto mb-8 md:mb-12" style={{ backgroundColor: theme.accentHex }} />
+        <h2 className="text-xl md:text-2xl font-bold mb-2">{config.title}</h2>
+        <p className="text-xs sm:text-sm italic opacity-80 mb-8">{config.subtitle}</p>
         <div className="text-[9px] uppercase tracking-tighter opacity-40">Powered by Polybius</div>
       </footer>
     </div>
