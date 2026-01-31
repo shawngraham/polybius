@@ -11,7 +11,7 @@ export enum CardType {
   TEXT = 'TEXT'
 }
 
-export type CardAlignment = 'left' | 'center' | 'right';
+export type CardAlignment = 'left' | 'center' | 'right' | 'full';
 export type TextAlignment = 'left' | 'center' | 'right' | 'justify';
 
 export interface BibliographyEntry {

@@ -136,6 +136,8 @@ const Viewer: React.FC<ViewerProps> = ({ config, data }) => {
 
             if (section.cardType === CardType.TEXT) {
               const textAlignClass = section.config.textAlign === 'center' ? 'text-center' : section.config.textAlign === 'right' ? 'text-right' : section.config.textAlign === 'justify' ? 'text-justify' : 'text-left';
+              const isFull = !section.alignment || section.alignment === 'full';
+              const textWidthClass = isFull ? 'w-full' : 'max-w-4xl w-full';
               return (
                 <div
                   key={section.id}
