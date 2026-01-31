@@ -139,42 +139,102 @@ const App: React.FC = () => {
         };
 
         // --- SUB-COMPONENTS ---
+        function buildEventSlots(sortedData, dateKey) {
+            const groups = new Map();
+            for (const item of sortedData) {
+                const d = Number(item[dateKey]);
+                const arr = groups.get(d) || [];
+                arr.push(item);
+                groups.set(d, arr);
+            }
+            const slots = [];
+            let slotIndex = 0;
+            const sortedDates = [...groups.keys()].sort((a, b) => a - b);
+            for (const date of sortedDates) {
+                const items = groups.get(date);
+                items.forEach((item, i) => {
+                    slots.push({ item, slotIndex, isFirstInGroup: i === 0, groupSize: items.length, date });
+                    slotIndex++;
+                });
+            }
+            return slots;
+        }
+
         const TimelineView = ({ data, config, theme }) => {
             const dateKey = config.dateKey || 'date';
             const labelKey = config.labelKey || 'label';
+            const orientation = config.orientation || 'vertical';
             const sortedData = [...data]
                 .filter(d => d[dateKey] !== undefined && !isNaN(Number(d[dateKey])))
                 .sort((a, b) => Number(a[dateKey]) - Number(b[dateKey]));
-            
-            if (sortedData.length === 0) return React.createElement('div', { className: "p-20 text-center opacity-50" }, "No temporal data found.");
-            
-            const min = Number(sortedData[0][dateKey]);
-            const max = Number(sortedData[sortedData.length - 1][dateKey]);
-            const range = max - min || 1;
 
+            if (sortedData.length === 0) return React.createElement('div', { className: "p-20 text-center opacity-50" }, "No temporal data found.");
+
+            const minDate = Number(sortedData[0][dateKey]);
+            const maxDate = Number(sortedData[sortedData.length - 1][dateKey]);
+            const slots = buildEventSlots(sortedData, dateKey);
+            const totalSlots = slots.length;
+
+            if (orientation === 'vertical') {
+                const rowHeight = 64;
+                return React.createElement('div', { className: "h-full w-full p-12 flex flex-col" }, [
+                    React.createElement('h3', { key: 'title', className: "text-xl font-bold mb-8 uppercase opacity-60" }, "Temporal Progression"),
+                    React.createElement('div', { key: 'body', className: "flex-1 overflow-y-auto relative", style: { scrollbarWidth: 'thin' } },
+                        React.createElement('div', { className: "relative pl-8", style: { minHeight: Math.max(totalSlots * rowHeight, 300) + 'px' } }, [
+                            React.createElement('div', { key: 'axis', className: "absolute top-0 bottom-0 left-6 w-px bg-current opacity-20" }),
+                            ...slots.map(({ item, slotIndex, isFirstInGroup, groupSize, date }, arrIdx) =>
+                                React.createElement('div', { key: arrIdx, className: "absolute flex items-center group", style: { top: (slotIndex * rowHeight) + 'px', left: 0 } }, [
+                                    isFirstInGroup && groupSize > 1 && React.createElement('div', { key: 'bracket', className: "absolute left-[23px] border-l-2 border-dashed opacity-20", style: { borderColor: theme.accentHex, top: '6px', height: ((groupSize - 1) * rowHeight) + 'px' } }),
+                                    React.createElement('div', { key: 'dot', className: "rounded-full " + theme.accent + " shadow-lg relative z-10", style: { marginLeft: '18px', width: isFirstInGroup ? 12 : 8, height: isFirstInGroup ? 12 : 8 } }),
+                                    React.createElement('div', { key: 'label', className: "ml-6 flex items-baseline gap-3" }, [
+                                        isFirstInGroup
+                                            ? React.createElement('span', { key: 'd', className: "text-sm font-bold min-w-[60px]" }, date)
+                                            : React.createElement('span', { key: 'd', className: "text-[10px] opacity-30 min-w-[60px] italic" }, "same date"),
+                                        React.createElement('span', { key: 'l', className: "text-xs opacity-70" }, item[labelKey] || 'Untitled')
+                                    ])
+                                ])
+                            )
+                        ])
+                    ),
+                    React.createElement('div', { key: 'footer', className: "mt-auto flex justify-between text-[10px] font-bold opacity-40 uppercase" }, [
+                        React.createElement('span', { key: 's' }, "Start: " + minDate),
+                        React.createElement('span', { key: 'c' }, "Column: " + dateKey),
+                        React.createElement('span', { key: 'e' }, "End: " + maxDate)
+                    ])
+                ]);
+            }
+
+            // Horizontal
+            const minSpacingPx = 110;
+            const minWidthNeeded = totalSlots * minSpacingPx;
+            const innerWidth = minWidthNeeded > 600 ? Math.max(minWidthNeeded, 100) + 'px' : '100%';
             return React.createElement('div', { className: "h-full w-full p-12 flex flex-col" }, [
-                React.createElement('h3', { className: "text-xl font-bold mb-8 uppercase opacity-60" }, "Temporal Progression"),
-                React.createElement('div', { className: "relative flex-1" }, [
-                    React.createElement('div', { className: "absolute top-1/2 left-0 right-0 h-px bg-current opacity-20" }),
-                    ...sortedData.map((item, idx) => {
-                        const pos = ((Number(item[dateKey]) - min) / range) * 100;
-                        const isTop = idx % 2 === 0;
-                        return React.createElement('div', { 
-                            key: idx, 
-                            className: "absolute flex flex-col items-center group",
-                            style: { left: pos + '%', transform: 'translateX(-50%)' }
-                        }, [
-                            isTop && React.createElement('div', { className: "mb-4 text-center w-32" }, [
-                                React.createElement('span', { className: "text-sm font-bold block" }, item[dateKey]),
-                                React.createElement('span', { className: "text-[10px] opacity-70 block truncate" }, item[labelKey])
-                            ]),
-                            React.createElement('div', { className: "w-3 h-3 rounded-full " + theme.accent }),
-                            !isTop && React.createElement('div', { className: "mt-4 text-center w-32" }, [
-                                React.createElement('span', { className: "text-sm font-bold block" }, item[dateKey]),
-                                React.createElement('span', { className: "text-[10px] opacity-70 block truncate" }, item[labelKey])
-                            ])
-                        ]);
-                    })
+                React.createElement('h3', { key: 'title', className: "text-xl font-bold mb-8 uppercase opacity-60" }, "Temporal Progression"),
+                React.createElement('div', { key: 'body', className: "relative flex-1 overflow-x-auto overflow-y-hidden", style: { scrollbarWidth: 'thin' } },
+                    React.createElement('div', { className: "relative h-full", style: { minWidth: innerWidth } }, [
+                        React.createElement('div', { key: 'axis', className: "absolute top-1/2 left-[2%] right-[2%] h-px bg-current opacity-20" }),
+                        React.createElement('div', { key: 'pts', className: "h-full relative flex items-center" },
+                            slots.map(({ item, slotIndex, isFirstInGroup, date }, arrIdx) => {
+                                const pos = totalSlots > 1 ? 2 + (slotIndex / (totalSlots - 1)) * 96 : 50;
+                                const isTop = arrIdx % 2 === 0;
+                                const dateDisplay = isFirstInGroup ? String(date) : '\\u21b3';
+                                const labelEl = React.createElement('div', { key: 'lbl', className: (isTop ? "mb-4 pb-4" : "mt-4 pt-4") + " text-center", style: { width: Math.max(80, minSpacingPx - 20) + 'px' } }, [
+                                    React.createElement('span', { key: 'd', className: "text-sm font-bold block " + (!isFirstInGroup ? 'opacity-40 text-xs' : '') }, dateDisplay),
+                                    React.createElement('span', { key: 'l', className: "text-xs opacity-70 block truncate px-1" }, item[labelKey] || 'Untitled')
+                                ]);
+                                return React.createElement('div', { key: arrIdx, className: "absolute flex flex-col items-center group", style: { left: pos + '%', transform: 'translateX(-50%)' } }, [
+                                    isTop && labelEl,
+                                    React.createElement('div', { key: 'dot', className: "rounded-full " + theme.accent + " shadow-lg", style: { width: isFirstInGroup ? 12 : 8, height: isFirstInGroup ? 12 : 8 } }),
+                                    !isTop && labelEl
+                                ]);
+                            })
+                        )
+                    ])
+                ),
+                React.createElement('div', { key: 'footer', className: "mt-auto flex justify-between text-[10px] font-bold opacity-40 uppercase" }, [
+                    React.createElement('span', { key: 's' }, "Start: " + minDate),
+                    React.createElement('span', { key: 'c' }, "Column: " + dateKey),
+                    React.createElement('span', { key: 'e' }, "End: " + maxDate)
                 ])
             ]);
         };
@@ -183,7 +243,8 @@ const App: React.FC = () => {
             const mapRef = useRef(null);
             const mapInstance = useRef(null);
             const layerGroup = useRef(null);
-            
+            const tileRef = useRef(null);
+
             useEffect(() => {
                 if (!mapRef.current) return;
                 const L = window.L;
@@ -192,32 +253,46 @@ const App: React.FC = () => {
                     L.control.zoom({ position: 'bottomright' }).addTo(mapInstance.current);
                     layerGroup.current = L.layerGroup().addTo(mapInstance.current);
                 }
-                
+
                 const map = mapInstance.current;
                 const layers = layerGroup.current;
                 layers.clearLayers();
-                
-                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(map);
-                
+
+                if (tileRef.current) { map.removeLayer(tileRef.current); }
+                const baseMaps = {
+                    terrain: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+                    toner: 'https://tiles.stadiamaps.com/tiles/stamen_toner/{z}/{x}/{y}{r}.png',
+                    satellite: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+                    voyager: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+                    watercolour: 'https://tiles.stadiamaps.com/tiles/stamen_watercolor/{z}/{x}/{y}.jpg'
+                };
+                const tileUrl = baseMaps[config.baseMap] || baseMaps.terrain;
+                tileRef.current = L.tileLayer(tileUrl).addTo(map);
+
                 const latKey = config.latKey || 'latitude';
                 const lngKey = config.lngKey || 'longitude';
                 const labelKey = config.labelKey || 'label';
-                
+
                 const markers = [];
                 data.filter(d => !isNaN(d[latKey]) && !isNaN(d[lngKey])).forEach(point => {
                     const m = L.circleMarker([point[latKey], point[lngKey]], {
-                        radius: 6, fillColor: '#4f46e5', color: '#fff', weight: 1, fillOpacity: 0.8
+                        radius: 6, fillColor: theme.accentHex || '#4f46e5', color: '#fff', weight: 1, fillOpacity: 0.8
                     }).bindTooltip(point[labelKey]?.toString() || "Untitled", { className: 'dh-tooltip' });
                     m.addTo(layers);
                     markers.push(m);
                 });
-                
-                if (markers.length > 0) map.fitBounds(L.featureGroup(markers).getBounds().pad(0.2));
+
+                const hasDefault = config.defaultLat && config.defaultLng && config.defaultZoom;
+                if (hasDefault) {
+                    map.setView([parseFloat(config.defaultLat), parseFloat(config.defaultLng)], parseInt(config.defaultZoom));
+                } else if (markers.length > 0) {
+                    map.fitBounds(L.featureGroup(markers).getBounds().pad(0.2));
+                }
             }, [data, config]);
-            
+
             return React.createElement('div', { className: "h-full w-full flex flex-col" }, [
-                React.createElement('div', { className: "p-8 font-bold uppercase opacity-60" }, "Spatial Context"),
-                React.createElement('div', { ref: mapRef, className: "flex-1 m-8 mt-0 rounded-2xl overflow-hidden bg-zinc-100 shadow-inner" })
+                React.createElement('div', { key: 'h', className: "p-8 font-bold uppercase opacity-60" }, "Spatial Context"),
+                React.createElement('div', { key: 'm', ref: mapRef, className: "flex-1 m-8 mt-0 rounded-2xl overflow-hidden bg-zinc-100 shadow-inner" })
             ]);
         };
 
@@ -308,8 +383,8 @@ const App: React.FC = () => {
                         chartData.length > 0 ? React.createElement(ResponsiveContainer, { width: "100%", height: "100%" },
                             React.createElement(ScatterChart, { margin: { top: 10, right: 20, bottom: 20, left: 10 } }, [
                                 React.createElement(CartesianGrid, { key: 'grid', strokeDasharray: "3 3", opacity: 0.15 }),
-                                React.createElement(XAxis, { key: 'x', dataKey: "x", type: "number", name: xKey, tick: { fill: 'currentColor', fontSize: 10 }, axisLine: false, tickLine: false }),
-                                React.createElement(YAxis, { key: 'y', dataKey: "y", type: "number", name: yKey, tick: { fill: 'currentColor', fontSize: 10 }, axisLine: false, tickLine: false }),
+                                React.createElement(XAxis, { key: 'x', dataKey: "x", type: "number", domain: ['dataMin', 'dataMax'], name: xKey, tick: { fill: 'currentColor', fontSize: 10 }, axisLine: false, tickLine: false }),
+                                React.createElement(YAxis, { key: 'y', dataKey: "y", type: "number", domain: ['dataMin', 'dataMax'], name: yKey, tick: { fill: 'currentColor', fontSize: 10 }, axisLine: false, tickLine: false }),
                                 React.createElement(Tooltip, { key: 'tip', content: ({ payload }) => {
                                     if (!payload || payload.length === 0) return null;
                                     const d = payload[0]?.payload;
@@ -342,8 +417,8 @@ const App: React.FC = () => {
                         chartData.length > 0 ? React.createElement(ResponsiveContainer, { width: "100%", height: "100%" },
                             React.createElement(ScatterChart, { margin: { top: 10, right: 20, bottom: 20, left: 10 } }, [
                                 React.createElement(CartesianGrid, { key: 'grid', strokeDasharray: "3 3", opacity: 0.15 }),
-                                React.createElement(XAxis, { key: 'x', dataKey: "x", type: "number", name: xKey, tick: { fill: 'currentColor', fontSize: 10 }, axisLine: false, tickLine: false }),
-                                React.createElement(YAxis, { key: 'y', dataKey: "y", type: "number", name: yKey, tick: { fill: 'currentColor', fontSize: 10 }, axisLine: false, tickLine: false }),
+                                React.createElement(XAxis, { key: 'x', dataKey: "x", type: "number", domain: ['dataMin', 'dataMax'], name: xKey, tick: { fill: 'currentColor', fontSize: 10 }, axisLine: false, tickLine: false }),
+                                React.createElement(YAxis, { key: 'y', dataKey: "y", type: "number", domain: ['dataMin', 'dataMax'], name: yKey, tick: { fill: 'currentColor', fontSize: 10 }, axisLine: false, tickLine: false }),
                                 React.createElement(ZAxis, { key: 'z', dataKey: "z", type: "number", range: [60, 600], domain: [zMin, zMax], name: zKey }),
                                 React.createElement(Tooltip, { key: 'tip', content: ({ payload }) => {
                                     if (!payload || payload.length === 0) return null;
@@ -365,43 +440,118 @@ const App: React.FC = () => {
             return React.createElement('div', { className: "h-full w-full p-10 flex items-center justify-center opacity-40" }, "Unknown chart type.");
         };
 
+        function buildEdgesExport(data, connectionsKey, labelKey) {
+            const edgeMap = new Map();
+            data.forEach((item, idx) => {
+                const conns = item[connectionsKey];
+                if (!conns || !Array.isArray(conns)) return;
+                conns.forEach(targetId => {
+                    const targetIdx = data.findIndex(d => d.id === targetId || d[labelKey] === targetId);
+                    if (targetIdx === -1 || targetIdx === idx) return;
+                    const a = Math.min(idx, targetIdx), b = Math.max(idx, targetIdx);
+                    const key = a + '-' + b;
+                    const existing = edgeMap.get(key);
+                    if (existing) existing.weight += 1;
+                    else edgeMap.set(key, { source: a, target: b, weight: 1 });
+                });
+            });
+            return [...edgeMap.values()];
+        }
+
+        function forceLayoutExport(data, edges, w, h) {
+            const n = data.length;
+            if (n === 0) return [];
+            const k = Math.sqrt(w * h / n) * 0.85;
+            const cx = w / 2, cy = h / 2;
+            const positions = data.map((_, i) => {
+                const angle = (2 * Math.PI * i) / n;
+                const r = Math.min(w, h) * 0.35;
+                return { x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) };
+            });
+            let temp = Math.min(w, h) * 0.15;
+            for (let iter = 0; iter < 200; iter++) {
+                const disp = positions.map(() => ({ x: 0, y: 0 }));
+                for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
+                    const dx = positions[i].x - positions[j].x, dy = positions[i].y - positions[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy) || 0.01;
+                    const f = (k * k) / dist;
+                    disp[i].x += (dx / dist) * f; disp[i].y += (dy / dist) * f;
+                    disp[j].x -= (dx / dist) * f; disp[j].y -= (dy / dist) * f;
+                }
+                for (const { source, target, weight } of edges) {
+                    const dx = positions[source].x - positions[target].x, dy = positions[source].y - positions[target].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy) || 0.01;
+                    const f = (dist * dist) / k * (0.5 + weight * 0.5);
+                    disp[source].x -= (dx / dist) * f; disp[source].y -= (dy / dist) * f;
+                    disp[target].x += (dx / dist) * f; disp[target].y += (dy / dist) * f;
+                }
+                for (let i = 0; i < n; i++) {
+                    disp[i].x -= (positions[i].x - cx) * 0.02;
+                    disp[i].y -= (positions[i].y - cy) * 0.02;
+                }
+                for (let i = 0; i < n; i++) {
+                    const dist = Math.sqrt(disp[i].x * disp[i].x + disp[i].y * disp[i].y) || 0.01;
+                    const ld = Math.min(dist, temp);
+                    positions[i].x += (disp[i].x / dist) * ld;
+                    positions[i].y += (disp[i].y / dist) * ld;
+                    positions[i].x = Math.max(50, Math.min(w - 50, positions[i].x));
+                    positions[i].y = Math.max(50, Math.min(h - 50, positions[i].y));
+                }
+                temp = Math.max(0.5, temp * 0.97);
+            }
+            return positions;
+        }
+
         const NetworkView = ({ data, config, theme }) => {
             const connectionsKey = config.connectionsKey || 'connections';
             const labelKey = config.labelKey || 'label';
-            const centerX = 200;
-            const centerY = 150;
-            const radius = 100;
+            const svgW = 500, svgH = 400;
 
-            return React.createElement('div', { className: "h-full w-full p-10 flex flex-col" }, [
-                React.createElement('h3', { className: "text-xl font-bold mb-8 uppercase opacity-60" }, "Relational Network"),
-                React.createElement('div', { className: "flex-1 relative overflow-hidden bg-current/5 rounded-2xl" }, 
-                    React.createElement('svg', { viewBox: "0 0 400 300", className: "w-full h-full" }, [
-                        ...data.flatMap((item, idx) => {
-                            const angle = (idx / data.length) * Math.PI * 2;
-                            const x = centerX + radius * Math.cos(angle);
-                            const y = centerY + radius * Math.sin(angle);
-                            const conns = item[connectionsKey];
-                            if (!conns || !Array.isArray(conns)) return [];
-                            return conns.map(targetId => {
-                                const targetIdx = data.findIndex(d => d.id === targetId || d[labelKey] === targetId);
-                                if (targetIdx === -1) return null;
-                                const tAngle = (targetIdx / data.length) * Math.PI * 2;
-                                const tx = centerX + radius * Math.cos(tAngle);
-                                const ty = centerY + radius * Math.sin(tAngle);
-                                return React.createElement('line', { key: item.id + '-' + targetId, x1: x, y1: y, x2: tx, y2: ty, stroke: "currentColor", strokeWidth: 1, className: "opacity-20" });
-                            });
+            const edges = useMemo(() => buildEdgesExport(data, connectionsKey, labelKey), [data, connectionsKey, labelKey]);
+            const positions = useMemo(() => forceLayoutExport(data, edges, svgW, svgH), [data, edges]);
+            const degrees = useMemo(() => { const d = new Array(data.length).fill(0); edges.forEach(e => { d[e.source] += e.weight; d[e.target] += e.weight; }); return d; }, [edges, data.length]);
+            const maxDeg = Math.max(...degrees, 1);
+            const maxWeight = Math.max(...edges.map(e => e.weight), 1);
+            const [minWeight, setMinWeight] = useState(1);
+
+            const filteredEdges = useMemo(() => edges.filter(e => e.weight >= minWeight), [edges, minWeight]);
+            const visibleNodes = useMemo(() => {
+                if (minWeight <= 1) return new Set(data.map((_, i) => i));
+                const s = new Set(); filteredEdges.forEach(e => { s.add(e.source); s.add(e.target); }); return s;
+            }, [filteredEdges, minWeight, data]);
+
+            return React.createElement('div', { className: "h-full w-full p-8 flex flex-col" }, [
+                React.createElement('h3', { key: 'title', className: "text-xl font-bold mb-4 uppercase opacity-60" }, "Entangled Networks"),
+                maxWeight > 1 && React.createElement('div', { key: 'filter', className: "flex items-center gap-3 mb-3" }, [
+                    React.createElement('label', { key: 'l', className: "text-[10px] font-bold opacity-50 uppercase" }, "Min edge weight:"),
+                    React.createElement('input', { key: 'r', type: "range", min: 1, max: maxWeight, step: 1, value: minWeight, onChange: e => setMinWeight(Number(e.target.value)), className: "flex-1 h-1 accent-current opacity-60" }),
+                    React.createElement('span', { key: 'v', className: "text-[10px] font-bold opacity-60" }, minWeight)
+                ]),
+                React.createElement('div', { key: 'svg', className: "flex-1 relative overflow-hidden bg-current/5 rounded-2xl border border-current/10" },
+                    React.createElement('svg', { viewBox: "0 0 " + svgW + " " + svgH, className: "w-full h-full" }, [
+                        ...filteredEdges.map(({ source, target, weight }) => {
+                            if (source >= positions.length || target >= positions.length) return null;
+                            const sw = 1.5 + (weight / maxWeight) * 3;
+                            const op = 0.25 + (weight / maxWeight) * 0.45;
+                            return React.createElement('line', { key: 'e' + source + '-' + target, x1: positions[source].x, y1: positions[source].y, x2: positions[target].x, y2: positions[target].y, stroke: theme.accentHex, strokeWidth: sw, opacity: op, strokeLinecap: "round" });
                         }),
                         ...data.map((item, idx) => {
-                            const angle = (idx / data.length) * Math.PI * 2;
-                            const x = centerX + radius * Math.cos(angle);
-                            const y = centerY + radius * Math.sin(angle);
-                            return React.createElement('g', { key: idx, className: "group" }, [
-                                React.createElement('circle', { cx: x, cy: y, r: 10, fill: "#4f46e5", className: "transition-transform group-hover:scale-125 shadow" }),
-                                React.createElement('text', { x: x, y: y + 20, fontSize: 8, textAnchor: "middle", className: "fill-current font-bold" }, item[labelKey])
+                            if (idx >= positions.length || !visibleNodes.has(idx)) return null;
+                            const x = positions[idx].x, y = positions[idx].y;
+                            const r = 6 + (degrees[idx] / maxDeg) * 10;
+                            return React.createElement('g', { key: 'n' + idx }, [
+                                React.createElement('circle', { key: 'c', cx: x, cy: y, r: r, fill: theme.accentHex, opacity: 0.85, stroke: theme.accentHex, strokeWidth: 2, strokeOpacity: 0.3 }),
+                                React.createElement('text', { key: 't', x: x, y: y + r + 12, fontSize: 8, textAnchor: "middle", className: "fill-current font-bold" }, item[labelKey]?.toString() || 'Untitled'),
+                                React.createElement('text', { key: 'd', x: x, y: y + 3, fontSize: 7, textAnchor: "middle", fill: "white", className: "font-bold" }, degrees[idx])
                             ]);
                         })
                     ])
-                )
+                ),
+                React.createElement('div', { key: 'foot', className: "mt-4 flex justify-between text-[10px] font-bold opacity-30 uppercase" }, [
+                    React.createElement('span', { key: 'a' }, "Force-directed layout"),
+                    React.createElement('span', { key: 'b' }, filteredEdges.length + " edges"),
+                    React.createElement('span', { key: 'c' }, "Column: " + connectionsKey)
+                ])
             ]);
         };
 
@@ -420,21 +570,25 @@ const App: React.FC = () => {
             const resolvedUrl = isIIIF && !imageUrl.match(/\\.(jpg|jpeg|png|gif|webp)/i)
               ? imageUrl.replace(/\\/$/, '') + '/full/800,/0/default.jpg'
               : imageUrl;
+            const goNext = () => setActiveIndex(p => (p + 1) % items.length);
+            const goPrev = () => setActiveIndex(p => (p - 1 + items.length) % items.length);
 
             return React.createElement('div', { className: "h-full w-full flex flex-col" }, [
-                React.createElement('div', { className: "p-8 pb-0 flex items-center justify-between" }, [
-                    React.createElement('h3', { className: "text-xl font-bold uppercase opacity-60" }, "Gallery"),
-                    React.createElement('span', { className: "text-xs font-bold opacity-40" }, (activeIndex + 1) + " / " + items.length)
+                React.createElement('div', { key: 'hdr', className: "p-8 pb-0 flex items-center justify-between" }, [
+                    React.createElement('h3', { key: 'h', className: "text-xl font-bold uppercase opacity-60" }, "Gallery"),
+                    React.createElement('span', { key: 'c', className: "text-xs font-bold opacity-40" }, (activeIndex + 1) + " / " + items.length)
                 ]),
-                React.createElement('div', { className: "flex-1 p-8 flex flex-col min-h-0" }, [
-                    React.createElement('div', { className: "flex-1 rounded-2xl overflow-hidden bg-black/5 shadow-inner relative min-h-0" },
-                        React.createElement('img', { src: resolvedUrl, alt: activeItem[labelKey] || 'Image', className: "w-full h-full object-contain" })
-                    ),
-                    React.createElement('div', { className: "mt-4 text-center" }, [
-                        React.createElement('p', { className: "text-sm font-bold" }, activeItem[labelKey] || 'Untitled'),
-                        activeItem[descKey] && React.createElement('p', { className: "text-xs opacity-70 mt-1" }, activeItem[descKey])
+                React.createElement('div', { key: 'body', className: "flex-1 p-8 flex flex-col min-h-0" }, [
+                    React.createElement('div', { key: 'img', className: "flex-1 rounded-2xl overflow-hidden bg-black/5 shadow-inner relative min-h-0" }, [
+                        React.createElement('img', { key: 'i', src: resolvedUrl, alt: activeItem[labelKey] || 'Image', className: "w-full h-full object-contain" }),
+                        items.length > 1 && React.createElement('button', { key: 'prev', onClick: goPrev, className: "absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center opacity-70 hover:opacity-100", style: { backdropFilter: 'blur(4px)' } }, React.createElement(Lucide.ChevronLeft, { size: 20 })),
+                        items.length > 1 && React.createElement('button', { key: 'next', onClick: goNext, className: "absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center opacity-70 hover:opacity-100", style: { backdropFilter: 'blur(4px)' } }, React.createElement(Lucide.ChevronRight, { size: 20 }))
                     ]),
-                    items.length > 1 && React.createElement('div', { className: "mt-4 flex items-center justify-center gap-2" },
+                    React.createElement('div', { key: 'cap', className: "mt-4 text-center" }, [
+                        React.createElement('p', { key: 'l', className: "text-sm font-bold" }, activeItem[labelKey] || 'Untitled'),
+                        activeItem[descKey] && React.createElement('p', { key: 'd', className: "text-xs opacity-70 mt-1" }, activeItem[descKey])
+                    ]),
+                    items.length > 1 && React.createElement('div', { key: 'thumbs', className: "mt-4 flex items-center justify-center gap-2" },
                         items.map((item, idx) => React.createElement('button', {
                             key: idx, onClick: () => setActiveIndex(idx),
                             className: "w-12 h-12 rounded-lg overflow-hidden border-2 transition-all " + (idx === activeIndex ? 'border-current opacity-100' : 'border-transparent opacity-40')
@@ -448,13 +602,20 @@ const App: React.FC = () => {
             const imageKey = config.imageKey || 'imageUrl';
             const labelKey = config.labelKey || 'label';
             const descKey = config.descriptionKey || 'description';
-            const itemIndex = config.itemIndex ?? 0;
+            const itemId = config.itemId ?? '';
             const items = data.filter(d => d[imageKey]);
 
             if (items.length === 0) return React.createElement('div', { className: "p-20 text-center opacity-50" }, "No image data found.");
 
-            const clampedIndex = Math.min(itemIndex, items.length - 1);
-            const item = items[clampedIndex];
+            let item;
+            if (itemId) {
+                const needle = String(itemId).toLowerCase();
+                item = items.find(d => String(d.id).toLowerCase() === needle);
+            }
+            if (!item) {
+                const legacyIndex = config.itemIndex ?? 0;
+                item = items[Math.min(legacyIndex, items.length - 1)];
+            }
             const imageUrl = item[imageKey];
             const isIIIF = imageUrl.includes('/iiif/') || imageUrl.includes('iiif.io');
             const resolvedUrl = isIIIF && !imageUrl.match(/\\.(jpg|jpeg|png|gif|webp)/i)
@@ -462,20 +623,55 @@ const App: React.FC = () => {
               : imageUrl;
 
             return React.createElement('div', { className: "h-full w-full flex flex-col" }, [
-                React.createElement('div', { className: "p-8 pb-0" },
+                React.createElement('div', { key: 'hdr', className: "p-8 pb-0" },
                     React.createElement('h3', { className: "text-xl font-bold uppercase opacity-60" }, "Image")
                 ),
-                React.createElement('div', { className: "flex-1 p-8 flex flex-col min-h-0" }, [
-                    React.createElement('div', { className: "flex-1 rounded-2xl overflow-hidden bg-black/5 shadow-inner relative min-h-0" },
+                React.createElement('div', { key: 'body', className: "flex-1 p-8 flex flex-col min-h-0" }, [
+                    React.createElement('div', { key: 'img', className: "flex-1 rounded-2xl overflow-hidden bg-black/5 shadow-inner relative min-h-0" },
                         React.createElement('img', { src: resolvedUrl, alt: item[labelKey] || 'Image', className: "w-full h-full object-contain" })
                     ),
-                    React.createElement('div', { className: "mt-4 text-center" }, [
-                        React.createElement('p', { className: "text-sm font-bold" }, item[labelKey] || 'Untitled'),
-                        item[descKey] && React.createElement('p', { className: "text-xs opacity-70 mt-1" }, item[descKey])
+                    React.createElement('div', { key: 'cap', className: "mt-4 text-center" }, [
+                        React.createElement('p', { key: 'l', className: "text-sm font-bold" }, item[labelKey] || 'Untitled'),
+                        item[descKey] && React.createElement('p', { key: 'd', className: "text-xs opacity-70 mt-1" }, item[descKey])
                     ])
-                ])
+                ]),
+                React.createElement('div', { key: 'foot', className: "px-8 pb-4 text-[10px] font-bold opacity-40 uppercase" }, "Source: " + imageKey + " \\u00B7 ID: " + (item.id || 'n/a'))
             ]);
         };
+
+        // --- VIDEO EMBED HELPER ---
+        function parseVideoEmbeds(text) {
+            const urlRegex = /(https?:\\/\\/(?:www\\.)?(?:youtube\\.com\\/watch\\?v=|youtu\\.be\\/|vimeo\\.com\\/)([\\w-]+)[^\\s]*)/gi;
+            const parts = [];
+            let lastIndex = 0;
+            let match;
+            while ((match = urlRegex.exec(text)) !== null) {
+                if (match.index > lastIndex) parts.push({ type: 'text', content: text.slice(lastIndex, match.index) });
+                const fullUrl = match[1], videoId = match[2];
+                let embedUrl = '';
+                if (fullUrl.includes('youtube.com') || fullUrl.includes('youtu.be')) embedUrl = 'https://www.youtube.com/embed/' + videoId;
+                else if (fullUrl.includes('vimeo.com')) embedUrl = 'https://player.vimeo.com/video/' + videoId;
+                parts.push({ type: 'video', content: fullUrl, embedUrl });
+                lastIndex = match.index + match[0].length;
+            }
+            if (lastIndex < text.length) parts.push({ type: 'text', content: text.slice(lastIndex) });
+            return parts.length > 0 ? parts : [{ type: 'text', content: text }];
+        }
+
+        function renderTextWithEmbeds(text) {
+            const parts = parseVideoEmbeds(text);
+            const hasVideos = parts.some(p => p.type === 'video');
+            if (!hasVideos) return React.createElement('p', { className: "text-base sm:text-lg md:text-xl leading-relaxed whitespace-pre-wrap opacity-90" }, text);
+            return React.createElement('div', { className: "space-y-6" }, parts.map((part, i) => {
+                if (part.type === 'video' && part.embedUrl) {
+                    return React.createElement('div', { key: i, className: "relative w-full rounded-xl overflow-hidden shadow-lg", style: { paddingBottom: '56.25%' } },
+                        React.createElement('iframe', { src: part.embedUrl, className: "absolute inset-0 w-full h-full", allow: "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture", allowFullScreen: true, title: "Embedded video" })
+                    );
+                }
+                if (part.content.trim()) return React.createElement('p', { key: i, className: "text-base sm:text-lg md:text-xl leading-relaxed whitespace-pre-wrap opacity-90" }, part.content);
+                return null;
+            }));
+        }
 
         // --- VIEWER ENGINE ---
         const Viewer = ({ config, data }) => {
@@ -511,8 +707,8 @@ const App: React.FC = () => {
             const vizAlignCls = activeSection && activeSection.vizAlignment === 'left' ? 'justify-start' : activeSection && activeSection.vizAlignment === 'right' ? 'justify-end' : 'justify-center';
 
             return React.createElement('div', { className: "min-h-screen transition-colors duration-700 " + theme.bg + " " + theme.text + " " + theme.font }, [
-                React.createElement('style', null, "::selection { background-color: " + theme.accentHex + "33; }"),
-                React.createElement('header', { className: "h-[50vh] md:h-[70vh] flex flex-col items-center justify-center text-center px-4 md:px-6 relative overflow-hidden" }, [
+                React.createElement('style', { key: 'sel' }, "::selection { background-color: " + theme.accentHex + "33; }"),
+                React.createElement('header', { key: 'hdr', className: "h-[50vh] md:h-[70vh] flex flex-col items-center justify-center text-center px-4 md:px-6 relative overflow-hidden" }, [
                     config.theme === 'playful' && React.createElement('div', { key: 'ghost', className: "absolute inset-0 flex flex-col items-center justify-center select-none pointer-events-none", 'aria-hidden': true },
                         React.createElement('div', { className: "relative w-full h-full overflow-hidden" },
                             [0, 1, 2, 3, 4].map(function(i) {
@@ -533,19 +729,19 @@ const App: React.FC = () => {
                             })
                         )
                     ),
-                    React.createElement('h1', { className: "text-3xl sm:text-5xl md:text-7xl font-bold mb-4 tracking-tight leading-tight relative z-10" }, config.title),
-                    React.createElement('div', { className: "h-1 w-24 rounded-full mx-auto mt-2 mb-4 md:mb-6", style: { backgroundColor: theme.accentHex } }),
-                    React.createElement('p', { className: "text-base sm:text-xl md:text-2xl opacity-80 italic max-w-2xl mb-6 md:mb-0" }, config.subtitle),
-                    React.createElement('div', { className: "mt-6 md:mt-8 flex flex-col items-center" }, [
-                        React.createElement('span', { className: "text-xs font-bold uppercase tracking-widest opacity-50" }, "Authored by"),
-                        React.createElement('span', { className: "text-base sm:text-lg font-medium border-b border-current" }, config.author)
+                    React.createElement('h1', { key: 'title', className: "text-3xl sm:text-5xl md:text-7xl font-bold mb-4 tracking-tight leading-tight relative z-10" }, config.title),
+                    React.createElement('div', { key: 'line', className: "h-1 w-24 rounded-full mx-auto mt-2 mb-4 md:mb-6", style: { backgroundColor: theme.accentHex } }),
+                    React.createElement('p', { key: 'sub', className: "text-base sm:text-xl md:text-2xl opacity-80 italic max-w-2xl mb-6 md:mb-0" }, config.subtitle),
+                    React.createElement('div', { key: 'auth', className: "mt-6 md:mt-8 flex flex-col items-center" }, [
+                        React.createElement('span', { key: 'by', className: "text-xs font-bold uppercase tracking-widest opacity-50" }, "Authored by"),
+                        React.createElement('span', { key: 'name', className: "text-base sm:text-lg font-medium border-b border-current" }, config.author)
                     ]),
-                    React.createElement('div', { className: "absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce opacity-40" },
+                    React.createElement('div', { key: 'arrow', className: "absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce opacity-40" },
                         React.createElement(Lucide.ChevronDown, { size: 24 })
                     )
                 ]),
-                React.createElement('div', { className: "relative flex flex-col md:flex-row" }, [
-                    React.createElement('div', { className: "px-4 md:px-6 pb-10 md:pb-20 transition-all duration-700 " + (isTextActive ? "w-full" : "w-full md:w-1/2") }, config.sections.map(s => {
+                React.createElement('div', { key: 'main', className: "relative flex flex-col md:flex-row" }, [
+                    React.createElement('div', { key: 'left', className: "px-4 md:px-6 pb-10 md:pb-20 transition-all duration-700 " + (isTextActive ? "w-full" : "w-full md:w-1/2") }, config.sections.map(s => {
                         const alignCls = s.alignment === 'right' ? 'justify-end' : s.alignment === 'center' ? 'justify-center' : 'justify-start';
                         const renderMobileViz = () => {
                             if (s.cardType === 'TEXT') return null;
@@ -562,7 +758,7 @@ const App: React.FC = () => {
                             return React.createElement('div', { key: s.id, ref: el => sectionRefs.current[s.id] = el, 'data-id': s.id, className: "min-h-[60vh] md:min-h-[80vh] flex items-center " + alignCls + " py-10 md:py-20 transition-opacity duration-500 " + (activeId === s.id ? 'opacity-100' : 'md:opacity-20 opacity-100') },
                                 React.createElement('div', { className: "w-full p-6 sm:p-8 md:p-12 rounded-2xl border border-t-4 " + theme.card + " " + theme.cardShadow + " " + taCls, style: { borderTopColor: theme.accentHex } }, [
                                     React.createElement('h2', { key: 'h', className: "text-xl sm:text-2xl md:text-3xl font-bold mb-4 md:mb-6 " + theme.headingColor }, s.title),
-                                    React.createElement('p', { key: 'p', className: "text-base sm:text-lg md:text-xl leading-relaxed whitespace-pre-wrap" }, s.content)
+                                    renderTextWithEmbeds(s.content)
                                 ])
                             );
                         }
@@ -578,7 +774,7 @@ const App: React.FC = () => {
                             )
                         ]);
                     })),
-                    React.createElement('div', { className: "desktop-viz hidden md:block w-1/2 h-screen sticky top-0 transition-all duration-700 " + (isTextActive ? "opacity-0 w-0 p-0" : "opacity-100") },
+                    React.createElement('div', { key: 'right', className: "desktop-viz hidden md:block h-screen sticky top-0 transition-all duration-700 " + (isTextActive ? "opacity-0 pointer-events-none" : "opacity-100 w-1/2 pointer-events-auto"), style: isTextActive ? { width: 0, padding: 0 } : undefined },
                         React.createElement('div', { className: "h-full p-8 flex items-center transition-all duration-700 " + vizAlignCls },
                             React.createElement('div', { className: "w-full h-[85vh] rounded-3xl overflow-hidden border relative " + theme.card + " " + theme.cardShadow },
                                 React.createElement(AnimatePresence, { mode: 'wait' },
@@ -588,10 +784,10 @@ const App: React.FC = () => {
                         )
                     )
                 ]),
-                React.createElement('footer', { className: "py-12 md:py-20 text-center opacity-60 px-4" }, [
-                    React.createElement('div', { className: "h-px w-32 mx-auto mb-8 md:mb-12", style: { backgroundColor: theme.accentHex } }),
-                    React.createElement('h2', { className: "text-xl md:text-2xl font-bold" }, config.title),
-                    React.createElement('p', { className: "text-xs mt-2 uppercase tracking-widest" }, "Powered by Polybius")
+                React.createElement('footer', { key: 'foot', className: "py-12 md:py-20 text-center opacity-60 px-4" }, [
+                    React.createElement('div', { key: 'line', className: "h-px w-32 mx-auto mb-8 md:mb-12", style: { backgroundColor: theme.accentHex } }),
+                    React.createElement('h2', { key: 'title', className: "text-xl md:text-2xl font-bold" }, config.title),
+                    React.createElement('p', { key: 'pb', className: "text-xs mt-2 uppercase tracking-widest" }, "Powered by Polybius")
                 ])
             ]);
         };

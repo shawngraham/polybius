@@ -12,7 +12,7 @@ const SingleImageView: React.FC<SingleImageViewProps> = ({ data, config, theme }
   const imageKey = config.imageKey || 'imageUrl';
   const labelKey = config.labelKey || 'label';
   const descKey = config.descriptionKey || 'description';
-  const itemIndex = config.itemIndex ?? 0;
+  const itemId = config.itemId ?? '';
 
   const items = data.filter(d => d[imageKey]);
 
@@ -27,8 +27,18 @@ const SingleImageView: React.FC<SingleImageViewProps> = ({ data, config, theme }
     );
   }
 
-  const clampedIndex = Math.min(itemIndex, items.length - 1);
-  const item = items[clampedIndex];
+  // Look up by ID (case-insensitive), fall back to first item
+  let item: HeritageDataItem | undefined;
+  if (itemId) {
+    const needle = String(itemId).toLowerCase();
+    item = items.find(d => String(d.id).toLowerCase() === needle);
+  }
+  if (!item) {
+    // Legacy fallback: support old numeric itemIndex configs
+    const legacyIndex = config.itemIndex ?? 0;
+    item = items[Math.min(legacyIndex, items.length - 1)];
+  }
+
   const imageUrl = item[imageKey] as string;
 
   const isIIIF = imageUrl.includes('/iiif/') || imageUrl.includes('iiif.io');
@@ -63,7 +73,7 @@ const SingleImageView: React.FC<SingleImageViewProps> = ({ data, config, theme }
       </div>
 
       <div className="px-8 pb-4 text-[10px] font-bold opacity-40 uppercase tracking-tighter">
-        <span>Source: {imageKey} (item {clampedIndex + 1} of {items.length})</span>
+        <span>Source: {imageKey} &middot; ID: {item.id ?? 'n/a'}</span>
       </div>
     </div>
   );
