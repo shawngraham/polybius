@@ -4,7 +4,7 @@ import { SiteConfig, HeritageDataItem } from './types.ts';
 import { INITIAL_CONFIG, SAMPLE_DATA } from './constants.tsx';
 import Editor from './components/Editor.tsx';
 import Viewer from './components/Viewer.tsx';
-import { Package, CheckCircle2, Loader2, Github, X, Download } from 'lucide-react';
+import { Package, CheckCircle2, Loader2, Github, X, Download, RefreshCw, Trash2 } from 'lucide-react';
 // @ts-ignore
 import JSZip from 'https://esm.sh/jszip';
 
@@ -14,6 +14,8 @@ const App: React.FC = () => {
   const [mode, setMode] = useState<'edit' | 'preview'>('edit');
   const [isGenerating, setIsGenerating] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [viewerKey, setViewerKey] = useState(0);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   // Load from local storage if available
   useEffect(() => {
@@ -43,6 +45,24 @@ const App: React.FC = () => {
   const handleDataUpdate = (newData: HeritageDataItem[]) => {
     setData(newData);
     localStorage.setItem('polybius_data', JSON.stringify(newData));
+  };
+
+  const handleClearAll = () => {
+    setConfig(INITIAL_CONFIG);
+    setData(SAMPLE_DATA);
+    localStorage.removeItem('polybius_config');
+    localStorage.removeItem('polybius_data');
+    setShowClearConfirm(false);
+    setMode('edit');
+  };
+
+  const handlePreviewClick = () => {
+    if (mode === 'preview') {
+      setViewerKey(k => k + 1);
+    } else {
+      setViewerKey(k => k + 1);
+      setMode('preview');
+    }
   };
 
   const handleGenerate = async () => {
@@ -587,9 +607,17 @@ const App: React.FC = () => {
         </div>
         
         <div className="flex items-center gap-4">
+          <button onClick={() => setShowClearConfirm(true)} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-400 hover:text-red-500 rounded-lg transition-colors" title="Clear everything and start fresh">
+            <Trash2 size={14} />
+            <span className="hidden sm:inline">New Project</span>
+          </button>
+
           <div className="flex items-center bg-zinc-100 p-1 rounded-lg">
             <button onClick={() => setMode('edit')} className={`px-3 py-1 text-xs font-medium rounded-md ${mode === 'edit' ? 'bg-white text-indigo-600 shadow-sm' : 'text-zinc-500'}`}>Editor</button>
-            <button onClick={() => setMode('preview')} className={`px-3 py-1 text-xs font-medium rounded-md ${mode === 'preview' ? 'bg-white text-indigo-600 shadow-sm' : 'text-zinc-500'}`}>Preview</button>
+            <button onClick={handlePreviewClick} className={`px-3 py-1 text-xs font-medium rounded-md flex items-center gap-1 ${mode === 'preview' ? 'bg-white text-indigo-600 shadow-sm' : 'text-zinc-500'}`}>
+              Preview
+              {mode === 'preview' && <RefreshCw size={11} className="opacity-60" />}
+            </button>
           </div>
 
           <button onClick={handleGenerate} disabled={isGenerating} className={`flex items-center gap-2 px-4 py-1.5 text-xs font-bold rounded-lg transition-all shadow-sm ${showSuccess ? 'bg-emerald-500 text-white' : 'bg-indigo-600 text-white hover:bg-indigo-700'} disabled:opacity-50`}>
@@ -599,8 +627,28 @@ const App: React.FC = () => {
         </div>
       </div>
 
+      {showClearConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm mx-4 border border-zinc-200">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center">
+                <Trash2 size={20} className="text-red-500" />
+              </div>
+              <h3 className="text-lg font-bold text-zinc-900">Start New Project?</h3>
+            </div>
+            <p className="text-sm text-zinc-500 mb-6 leading-relaxed">
+              This will clear all sections, data, and settings and reset to the sample Silk Road dataset. This cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button onClick={() => setShowClearConfirm(false)} className="px-4 py-2 text-sm font-medium text-zinc-600 bg-zinc-100 rounded-lg hover:bg-zinc-200 transition-colors">Cancel</button>
+              <button onClick={handleClearAll} className="px-4 py-2 text-sm font-bold text-white bg-red-500 rounded-lg hover:bg-red-600 transition-colors">Clear Everything</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="pt-12">
-        {mode === 'edit' ? <Editor config={config} data={data} onConfigChange={handleSave} onDataChange={handleDataUpdate} /> : <Viewer config={config} data={data} />}
+        {mode === 'edit' ? <Editor config={config} data={data} onConfigChange={handleSave} onDataChange={handleDataUpdate} /> : <Viewer key={viewerKey} config={config} data={data} />}
       </div>
     </div>
   );
