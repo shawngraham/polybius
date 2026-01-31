@@ -408,6 +408,9 @@ const Editor: React.FC<EditorProps> = ({ config, data, onConfigChange, onDataCha
                           1245,Formation of the Ilkhanate,Politics<br/>
                           1294,Death of Kublai Khan,Politics
                         </div>
+                        <p className="text-xs text-zinc-500 mt-2 leading-relaxed"><strong>Orientation:</strong> Choose between <strong>Vertical</strong> (default) or <strong>Horizontal</strong> layout. Vertical is recommended for most datasets as labels never overlap.</p>
+                        <p className="text-xs text-zinc-500 mt-1 leading-relaxed"><strong>Shared dates:</strong> When multiple events share the same date, they are displayed in consecutive slots rather than stacking. In vertical mode a dashed bracket connects them and subsequent entries are marked "same date". In horizontal mode they receive individual positions with a ↳ prefix.</p>
+                        <p className="text-xs text-zinc-500 mt-1 leading-relaxed"><strong>Scrollable:</strong> If there are more events than fit in the view, the timeline becomes scrollable (horizontal scroll in horizontal mode, vertical scroll in vertical mode).</p>
                       </div>
 
                       <div className="border-l-4 border-indigo-500 pl-4 py-1">
@@ -418,6 +421,8 @@ const Editor: React.FC<EditorProps> = ({ config, data, onConfigChange, onDataCha
                           39.65,66.97,Samarkand<br/>
                           40.14,94.66,Dunhuang
                         </div>
+                        <p className="text-xs text-zinc-500 mt-2 leading-relaxed"><strong>Default View:</strong> Optionally set a default <strong>Centre Latitude</strong>, <strong>Centre Longitude</strong>, and <strong>Zoom</strong> level (1–18) in the Mapping & Constraints panel. When all three are provided the map opens at that exact view. Leave them blank to auto-fit the map to your data points.</p>
+                        <p className="text-xs text-zinc-500 mt-1 leading-relaxed"><strong>Base Maps:</strong> Five tile layers are available — Terrain, Toner, Satellite, Voyager, and Watercolour.</p>
                       </div>
 
                       <div className="border-l-4 border-indigo-500 pl-4 py-1">
@@ -428,6 +433,9 @@ const Editor: React.FC<EditorProps> = ({ config, data, onConfigChange, onDataCha
                           S1,Samarkand,"S2,S4"<br/>
                           S2,Dunhuang,S1
                         </div>
+                        <p className="text-xs text-zinc-500 mt-2 leading-relaxed"><strong>Layout:</strong> Nodes are arranged using a force-directed algorithm with gravity toward the centre — connected nodes are pulled together while unconnected ones repel. Node size scales with degree (total edge count).</p>
+                        <p className="text-xs text-zinc-500 mt-1 leading-relaxed"><strong>Edge weight & filtering:</strong> Edge weight is the number of times a connection is referenced (e.g., if A lists B and B lists A, weight = 2). Edge thickness and opacity scale with weight. When the dataset contains edges of different weights a <strong>Min Edge Weight</strong> slider appears, letting you hide low-weight edges and their orphaned nodes to focus on the strongest relationships.</p>
+                        <p className="text-xs text-zinc-500 mt-1 leading-relaxed"><strong>Interaction:</strong> Scroll to zoom, click-drag to pan, or use the +/−/Reset buttons. The number inside each node shows its degree.</p>
                       </div>
 
                       <div className="border-l-4 border-indigo-500 pl-4 py-1">
@@ -438,7 +446,7 @@ const Editor: React.FC<EditorProps> = ({ config, data, onConfigChange, onDataCha
                           Samarkand,1210,39.65,66.97,Trade Hub<br/>
                           Dunhuang,1225,40.14,94.66,Cultural Hub
                         </div>
-                        <p className="text-xs text-zinc-500 mt-2 leading-relaxed"><strong>Bar:</strong> Select a Category column to count occurrences, or a Value column for direct numeric comparison. <strong>Line:</strong> Pick a numeric X axis and one or more Y axis columns for multi-series trends. <strong>XY Scatter:</strong> Map two numeric columns to X and Y axes. <strong>3D Bubble:</strong> Add a third numeric column (Z) that controls bubble size.</p>
+                        <p className="text-xs text-zinc-500 mt-2 leading-relaxed"><strong>Bar:</strong> Select a Category column to count occurrences, or a Value column for direct numeric comparison. <strong>Line:</strong> Pick a numeric X axis and one or more Y axis columns for multi-series trends. <strong>XY Scatter:</strong> Map two numeric columns to X and Y axes — both axes scale from the data minimum to maximum (not from zero), which is essential when the X column contains dates or large values. <strong>3D Bubble:</strong> Add a third numeric column (Z) that controls bubble size; axes also scale from data min to max.</p>
                       </div>
 
                       <div className="border-l-4 border-indigo-500 pl-4 py-1">
@@ -450,6 +458,7 @@ const Editor: React.FC<EditorProps> = ({ config, data, onConfigChange, onDataCha
                           Dunhuang,https://iiif.example.org/mogao/full/800,/0/default.jpg,Mogao Caves
                         </div>
                         <p className="text-xs text-zinc-500 mt-2 leading-relaxed">IIIF endpoints are detected automatically. If a URL contains <span className="font-mono bg-zinc-100 px-1 rounded">/iiif/</span> and has no file extension, the viewer appends <span className="font-mono bg-zinc-100 px-1 rounded">/full/800,/0/default.jpg</span> to resolve the image.</p>
+                        <p className="text-xs text-zinc-500 mt-1 leading-relaxed"><strong>Navigation:</strong> Left/right arrow buttons are overlaid on the image for quick browsing. Thumbnail buttons below the image allow direct access to any item. Navigation wraps around (last → first).</p>
                       </div>
 
                       <div className="border-l-4 border-indigo-500 pl-4 py-1">
@@ -462,6 +471,13 @@ const Editor: React.FC<EditorProps> = ({ config, data, onConfigChange, onDataCha
                         <h5 className="font-bold text-xs uppercase text-zinc-400 mb-2">Text Only View</h5>
                         <p className="text-sm text-zinc-700 mb-2">Displays narrative text at full page width with no visualization panel. Supports four text alignment modes: **left**, **center**, **right**, and **justify**.</p>
                         <p className="text-xs text-zinc-500 leading-relaxed">Use this for introductory essays, methodological notes, or any section where the writing should stand alone without an accompanying visualization. No data columns are required.</p>
+                        <p className="text-xs text-zinc-500 mt-2 leading-relaxed"><strong>Video Embeds:</strong> YouTube and Vimeo links pasted directly into the text content are automatically converted into responsive embedded players. Supported URL formats:</p>
+                        <div className="bg-zinc-900 rounded-lg p-3 font-mono text-[10px] text-zinc-400 mt-1">
+                          https://www.youtube.com/watch?v=VIDEO_ID<br/>
+                          https://youtu.be/VIDEO_ID<br/>
+                          https://vimeo.com/VIDEO_ID
+                        </div>
+                        <p className="text-xs text-zinc-500 mt-1 leading-relaxed">Surrounding text is preserved above and below the embed. You can include multiple videos in a single section.</p>
                       </div>
                     </div>
                   </div>
