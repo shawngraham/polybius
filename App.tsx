@@ -503,57 +503,87 @@ const App: React.FC = () => {
         }
 
         const NetworkView = ({ data, config, theme }) => {
-            const connectionsKey = config.connectionsKey || 'connections';
-            const labelKey = config.labelKey || 'label';
-            const svgW = 500, svgH = 400;
+    const connectionsKey = config.connectionsKey || 'connections';
+    const labelKey = config.labelKey || 'label';
+    const initialMinWeight = config.minWeight || 1; // Sync with Editor config
+    const svgW = 600, svgH = 500;
 
-            const edges = useMemo(() => buildEdgesExport(data, connectionsKey, labelKey), [data, connectionsKey, labelKey]);
-            const positions = useMemo(() => forceLayoutExport(data, edges, svgW, svgH), [data, edges]);
-            const degrees = useMemo(() => { const d = new Array(data.length).fill(0); edges.forEach(e => { d[e.source] += e.weight; d[e.target] += e.weight; }); return d; }, [edges, data.length]);
-            const maxDeg = Math.max(...degrees, 1);
-            const maxWeight = Math.max(...edges.map(e => e.weight), 1);
-            const [minWeight, setMinWeight] = useState(1);
+    const [hoveredNode, setHoveredNode] = useState(null);
+    const [minWeight, setMinWeight] = useState(initialMinWeight);
 
-            const filteredEdges = useMemo(() => edges.filter(e => e.weight >= minWeight), [edges, minWeight]);
-            const visibleNodes = useMemo(() => {
-                if (minWeight <= 1) return new Set(data.map((_, i) => i));
-                const s = new Set(); filteredEdges.forEach(e => { s.add(e.source); s.add(e.target); }); return s;
-            }, [filteredEdges, minWeight, data]);
+    const edges = useMemo(() => buildEdgesExport(data, connectionsKey, labelKey), [data, connectionsKey, labelKey]);
+    const filteredEdges = useMemo(() => edges.filter(e => e.weight >= minWeight), [edges, minWeight]);
+    const positions = useMemo(() => forceLayoutExport(data, filteredEdges, svgW, svgH), [data, filteredEdges]);
+    
+    const degrees = useMemo(() => { 
+        const d = new Array(data.length).fill(0); 
+        filteredEdges.forEach(e => { d[e.source] += e.weight; d[e.target] += e.weight; }); 
+        return d; 
+    }, [filteredEdges, data.length]);
 
-            return React.createElement('div', { className: "h-full w-full p-8 flex flex-col" }, [
-                React.createElement('h3', { key: 'title', className: "text-xl font-bold mb-4 uppercase opacity-60" }, "Entangled Networks"),
-                maxWeight > 1 && React.createElement('div', { key: 'filter', className: "flex items-center gap-3 mb-3" }, [
-                    React.createElement('label', { key: 'l', className: "text-[10px] font-bold opacity-50 uppercase" }, "Min edge weight:"),
-                    React.createElement('input', { key: 'r', type: "range", min: 1, max: maxWeight, step: 1, value: minWeight, onChange: e => setMinWeight(Number(e.target.value)), className: "flex-1 h-1 accent-current opacity-60" }),
-                    React.createElement('span', { key: 'v', className: "text-[10px] font-bold opacity-60" }, minWeight)
-                ]),
-                React.createElement('div', { key: 'svg', className: "flex-1 relative overflow-hidden bg-current/5 rounded-2xl border border-current/10" },
-                    React.createElement('svg', { viewBox: "0 0 " + svgW + " " + svgH, className: "w-full h-full" }, [
-                        ...filteredEdges.map(({ source, target, weight }) => {
-                            if (source >= positions.length || target >= positions.length) return null;
-                            const sw = 1.5 + (weight / maxWeight) * 3;
-                            const op = 0.25 + (weight / maxWeight) * 0.45;
-                            return React.createElement('line', { key: 'e' + source + '-' + target, x1: positions[source].x, y1: positions[source].y, x2: positions[target].x, y2: positions[target].y, stroke: theme.accentHex, strokeWidth: sw, opacity: op, strokeLinecap: "round" });
-                        }),
-                        ...data.map((item, idx) => {
-                            if (idx >= positions.length || !visibleNodes.has(idx)) return null;
-                            const x = positions[idx].x, y = positions[idx].y;
-                            const r = 6 + (degrees[idx] / maxDeg) * 10;
-                            return React.createElement('g', { key: 'n' + idx }, [
-                                React.createElement('circle', { key: 'c', cx: x, cy: y, r: r, fill: theme.accentHex, opacity: 0.85, stroke: theme.accentHex, strokeWidth: 2, strokeOpacity: 0.3 }),
-                                React.createElement('text', { key: 't', x: x, y: y + r + 12, fontSize: 8, textAnchor: "middle", className: "fill-current font-bold" }, item[labelKey]?.toString() || 'Untitled'),
-                                React.createElement('text', { key: 'd', x: x, y: y + 3, fontSize: 7, textAnchor: "middle", fill: "white", className: "font-bold" }, degrees[idx])
-                            ]);
-                        })
-                    ])
-                ),
-                React.createElement('div', { key: 'foot', className: "mt-4 flex justify-between text-[10px] font-bold opacity-30 uppercase" }, [
-                    React.createElement('span', { key: 'a' }, "Force-directed layout"),
-                    React.createElement('span', { key: 'b' }, filteredEdges.length + " edges"),
-                    React.createElement('span', { key: 'c' }, "Column: " + connectionsKey)
-                ])
-            ]);
-        };
+    const maxDeg = Math.max(...degrees, 1);
+    const maxWeight = Math.max(...edges.map(e => e.weight), 1);
+
+    const connectedToHover = useMemo(() => {
+        if (hoveredNode === null) return new Set();
+        const neighbors = new Set([hoveredNode]);
+        filteredEdges.forEach(e => {
+            if (e.source === hoveredNode) neighbors.add(e.target);
+            if (e.target === hoveredNode) neighbors.add(e.source);
+        });
+        return neighbors;
+    }, [hoveredNode, filteredEdges]);
+
+    return React.createElement('div', { className: "h-full w-full p-6 flex flex-col" }, [
+        React.createElement('div', { key: 'hdr', className: "flex justify-between items-center mb-4" }, [
+            React.createElement('h3', { className: "text-lg font-bold uppercase opacity-60" }, "Relational Network"),
+            maxWeight > 1 && React.createElement('div', { className: "flex items-center gap-3 bg-current/5 px-3 py-1 rounded-full" }, [
+                React.createElement('label', { className: "text-[9px] font-black uppercase opacity-50" }, "Min Weight:"),
+                React.createElement('input', { type: "range", min: 1, max: maxWeight, step: 1, value: minWeight, onChange: e => setMinWeight(Number(e.target.value)), className: "w-24 h-1 accent-current" }),
+                React.createElement('span', { className: "text-[10px] font-bold min-w-[12px]" }, minWeight)
+            ])
+        ]),
+        React.createElement('div', { key: 'svg-cont', className: "flex-1 relative bg-current/[0.02] rounded-3xl border border-current/10 overflow-hidden" },
+            React.createElement('svg', { viewBox: "0 0 " + svgW + " " + svgH, className: "w-full h-full" }, [
+                // Edges
+                ...filteredEdges.map((edge, i) => {
+                    const isDimmed = hoveredNode !== null && !connectedToHover.has(edge.source) && !connectedToHover.has(edge.target);
+                    const isHighlighted = hoveredNode !== null && (edge.source === hoveredNode || edge.target === hoveredNode);
+                    return React.createElement('line', {
+                        key: 'e'+i,
+                        x1: positions[edge.source].x, y1: positions[edge.source].y,
+                        x2: positions[edge.target].x, y2: positions[edge.target].y,
+                        stroke: theme.accentHex,
+                        strokeWidth: isHighlighted ? 3 : 1 + (edge.weight * 0.5),
+                        opacity: isDimmed ? 0.05 : isHighlighted ? 0.8 : 0.2,
+                        strokeLinecap: "round",
+                        className: "transition-all duration-300"
+                    });
+                }),
+                // Nodes
+                ...data.map((item, i) => {
+                    if (degrees[i] === 0 && minWeight > 1) return null;
+                    const { x, y } = positions[i];
+                    const r = 5 + (degrees[i] / maxDeg) * 15;
+                    const isDimmed = hoveredNode !== null && !connectedToHover.has(i);
+                    return React.createElement('g', { 
+                        key: 'n'+i, 
+                        onMouseEnter: () => setHoveredNode(i), 
+                        onMouseLeave: () => setHoveredNode(null),
+                        className: "cursor-pointer transition-opacity duration-300",
+                        style: { opacity: isDimmed ? 0.2 : 1 }
+                    }, [
+                        React.createElement('circle', { cx: x, cy: y, r: r, fill: theme.accentHex }),
+                        React.createElement('text', { x: x, y: y + r + 14, textAnchor: "middle", fontSize: "10", fontWeight: "bold", className: "fill-current" }, [
+                            React.createElement('tspan', { x: x, dy: "0", stroke: theme.bg.includes('white') || theme.bg.includes('zinc-100') ? "white" : "black", strokeWidth: "3", strokeLinejoin: "round", opacity: 0.8 }, item[labelKey]),
+                            React.createElement('tspan', { x: x, dy: "0", fill: "currentColor" }, item[labelKey])
+                        ])
+                    ]);
+                })
+            ])
+        )
+    ]);
+};
 
         const ImageView = ({ data, config, theme }) => {
             const imageKey = config.imageKey || 'imageUrl';
