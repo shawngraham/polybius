@@ -134,7 +134,8 @@ const App: React.FC = () => {
           dark: { bg: 'bg-zinc-950', text: 'text-zinc-100', accent: 'bg-amber-500', font: 'font-sans', card: 'bg-zinc-900 border-zinc-800', headingColor: 'text-amber-400', accentHex: '#f59e0b', cardShadow: 'shadow-lg ring-1 ring-white/5' },
           highcontrast: { bg: 'bg-white', text: 'text-black', accent: 'bg-blue-700', font: 'font-sans', card: 'bg-white border-black', headingColor: 'text-black', accentHex: '#1d4ed8', cardShadow: 'shadow-xl' },
           maritime: { bg: 'bg-[#0b1a2e]', text: 'text-[#c9daea]', accent: 'bg-[#d4a017]', font: 'font-serif', card: 'bg-[#122240] border-[#1e3a5f]', headingColor: 'text-[#e8b828]', accentHex: '#d4a017', cardShadow: 'shadow-lg ring-1 ring-white/5' },
-          forest: { bg: 'bg-[#f0ebe3]', text: 'text-[#2d3a2e]', accent: 'bg-[#5a7247]', font: 'font-serif', card: 'bg-[#e8e0d4] border-[#c4b9a8]', headingColor: 'text-[#3d5230]', accentHex: '#5a7247', cardShadow: 'shadow-xl' }
+          forest: { bg: 'bg-[#f0ebe3]', text: 'text-[#2d3a2e]', accent: 'bg-[#5a7247]', font: 'font-serif', card: 'bg-[#e8e0d4] border-[#c4b9a8]', headingColor: 'text-[#3d5230]', accentHex: '#5a7247', cardShadow: 'shadow-xl' },
+          playful: { bg: 'bg-[#1a1025]', text: 'text-[#e8dff0]', accent: 'bg-[#e85d75]', font: 'font-sans', card: 'bg-[#251438]/80 border-[#3d2655]', headingColor: 'text-[#f0a1b3]', accentHex: '#e85d75', cardShadow: 'shadow-lg ring-1 ring-white/5' }
         };
 
         // --- SUB-COMPONENTS ---
@@ -511,8 +512,28 @@ const App: React.FC = () => {
 
             return React.createElement('div', { className: "min-h-screen transition-colors duration-700 " + theme.bg + " " + theme.text + " " + theme.font }, [
                 React.createElement('style', null, "::selection { background-color: " + theme.accentHex + "33; }"),
-                React.createElement('header', { className: "h-[50vh] md:h-[70vh] flex flex-col items-center justify-center text-center px-4 md:px-6 relative" }, [
-                    React.createElement('h1', { className: "text-3xl sm:text-5xl md:text-7xl font-bold mb-4 tracking-tight leading-tight" }, config.title),
+                React.createElement('header', { className: "h-[50vh] md:h-[70vh] flex flex-col items-center justify-center text-center px-4 md:px-6 relative overflow-hidden" }, [
+                    config.theme === 'playful' && React.createElement('div', { key: 'ghost', className: "absolute inset-0 flex flex-col items-center justify-center select-none pointer-events-none", 'aria-hidden': true },
+                        React.createElement('div', { className: "relative w-full h-full overflow-hidden" },
+                            [0, 1, 2, 3, 4].map(function(i) {
+                                return React.createElement('div', {
+                                    key: 'g' + i,
+                                    className: "absolute whitespace-nowrap font-bold",
+                                    style: {
+                                        fontSize: (8 + i * 3) + 'rem',
+                                        top: (10 + i * 18) + '%',
+                                        left: '50%',
+                                        transform: 'translateX(-50%) rotate(' + (-3 + i * 1.5) + 'deg)',
+                                        opacity: 0.03 + i * 0.008,
+                                        color: theme.accentHex,
+                                        letterSpacing: (0.05 + i * 0.02) + 'em',
+                                        lineHeight: 1
+                                    }
+                                }, config.title);
+                            })
+                        )
+                    ),
+                    React.createElement('h1', { className: "text-3xl sm:text-5xl md:text-7xl font-bold mb-4 tracking-tight leading-tight relative z-10" }, config.title),
                     React.createElement('div', { className: "h-1 w-24 rounded-full mx-auto mt-2 mb-4 md:mb-6", style: { backgroundColor: theme.accentHex } }),
                     React.createElement('p', { className: "text-base sm:text-xl md:text-2xl opacity-80 italic max-w-2xl mb-6 md:mb-0" }, config.subtitle),
                     React.createElement('div', { className: "mt-6 md:mt-8 flex flex-col items-center" }, [

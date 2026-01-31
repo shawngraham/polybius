@@ -1,5 +1,5 @@
 
-export type ThemeType = 'classic' | 'parchment' | 'academic' | 'dark' | 'highcontrast' | 'maritime' | 'forest';
+export type ThemeType = 'classic' | 'parchment' | 'academic' | 'dark' | 'highcontrast' | 'maritime' | 'forest' | 'playful';
 
 export enum CardType {
   TIMELINE = 'TIMELINE',

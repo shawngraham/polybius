@@ -71,6 +71,16 @@ export const THEMES: Record<ThemeType, { bg: string; text: string; accent: strin
     headingColor: 'text-[#3d5230]',
     accentHex: '#5a7247',
     cardShadow: 'shadow-xl'
+  },
+  playful: {
+    bg: 'bg-[#1a1025]',
+    text: 'text-[#e8dff0]',
+    accent: 'bg-[#e85d75]',
+    font: 'font-sans',
+    card: 'bg-[#251438]/80 border-[#3d2655]',
+    headingColor: 'text-[#f0a1b3]',
+    accentHex: '#e85d75',
+    cardShadow: 'shadow-lg ring-1 ring-white/5'
   }
 };
 

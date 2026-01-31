@@ -69,6 +69,36 @@ const Viewer: React.FC<ViewerProps> = ({ config, data }) => {
       <style>{`::selection { background-color: ${theme.accentHex}33; }`}</style>
       {/* Header */}
       <header className="h-[50vh] md:h-[70vh] flex flex-col items-center justify-center text-center px-4 md:px-6 relative overflow-hidden">
+        {/* Ghost text effect for playful theme */}
+        {config.theme === 'playful' && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center select-none pointer-events-none" aria-hidden="true">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 2, delay: 0.5 }}
+              className="relative w-full h-full overflow-hidden"
+            >
+              {[...Array(5)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute whitespace-nowrap font-bold"
+                  style={{
+                    fontSize: `${8 + i * 3}rem`,
+                    top: `${10 + i * 18}%`,
+                    left: '50%',
+                    transform: `translateX(-50%) rotate(${-3 + i * 1.5}deg)`,
+                    opacity: 0.03 + i * 0.008,
+                    color: theme.accentHex,
+                    letterSpacing: `${0.05 + i * 0.02}em`,
+                    lineHeight: 1,
+                  }}
+                >
+                  {config.title}
+                </div>
+              ))}
+            </motion.div>
+          </div>
+        )}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
