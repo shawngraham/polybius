@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { HeritageDataItem } from '../../types';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface ImageViewProps {
   data: HeritageDataItem[];
@@ -36,6 +37,9 @@ const ImageView: React.FC<ImageViewProps> = ({ data, config, theme }) => {
     ? `${imageUrl.replace(/\/$/, '')}/full/800,/0/default.jpg`
     : imageUrl;
 
+  const goNext = () => setActiveIndex(prev => (prev + 1) % items.length);
+  const goPrev = () => setActiveIndex(prev => (prev - 1 + items.length) % items.length);
+
   return (
     <div className="h-full w-full flex flex-col">
       <div className="p-8 pb-0 flex items-center justify-between">
@@ -54,6 +58,26 @@ const ImageView: React.FC<ImageViewProps> = ({ data, config, theme }) => {
               (e.target as HTMLImageElement).alt = 'Failed to load image';
             }}
           />
+
+          {/* Left/Right navigation arrows */}
+          {items.length > 1 && (
+            <>
+              <button
+                onClick={goPrev}
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center transition-all opacity-70 hover:opacity-100 backdrop-blur-sm"
+                title="Previous image"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <button
+                onClick={goNext}
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center transition-all opacity-70 hover:opacity-100 backdrop-blur-sm"
+                title="Next image"
+              >
+                <ChevronRight size={20} />
+              </button>
+            </>
+          )}
         </div>
 
         <div className="mt-4 text-center">

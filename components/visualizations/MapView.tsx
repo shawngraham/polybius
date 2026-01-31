@@ -19,11 +19,14 @@ const MapView: React.FC<MapViewProps> = ({ data, config, theme }) => {
   const lngKey = config.lngKey || 'longitude';
   const labelKey = config.labelKey || 'label';
   const baseMap = config.baseMap || 'terrain';
+  const defaultLat = config.defaultLat !== undefined && config.defaultLat !== '' ? Number(config.defaultLat) : undefined;
+  const defaultLng = config.defaultLng !== undefined && config.defaultLng !== '' ? Number(config.defaultLng) : undefined;
+  const defaultZoom = config.defaultZoom !== undefined && config.defaultZoom !== '' ? Number(config.defaultZoom) : undefined;
 
-  const validPoints = data.filter(d => 
-    d[latKey] !== undefined && 
-    d[lngKey] !== undefined && 
-    !isNaN(Number(d[latKey])) && 
+  const validPoints = data.filter(d =>
+    d[latKey] !== undefined &&
+    d[lngKey] !== undefined &&
+    !isNaN(Number(d[latKey])) &&
     !isNaN(Number(d[lngKey]))
   );
 
@@ -52,14 +55,18 @@ const MapView: React.FC<MapViewProps> = ({ data, config, theme }) => {
       const L = (window as any).L;
       if (!L) return;
 
+      const initLat = defaultLat !== undefined ? defaultLat : 20;
+      const initLng = defaultLng !== undefined ? defaultLng : 0;
+      const initZoom = defaultZoom !== undefined ? defaultZoom : 2;
+
       mapInstanceRef.current = L.map(mapContainerRef.current, {
         zoomControl: false,
         attributionControl: false
-      }).setView([20, 0], 2);
+      }).setView([initLat, initLng], initZoom);
 
       // Add custom zoom control to bottom right
       L.control.zoom({ position: 'bottomright' }).addTo(mapInstanceRef.current);
-      
+
       // Add attribution to bottom left
       L.control.attribution({ position: 'bottomleft', prefix: false }).addTo(mapInstanceRef.current);
 
@@ -82,7 +89,7 @@ const MapView: React.FC<MapViewProps> = ({ data, config, theme }) => {
     // Set new Tile Layer
     const url = tileLayers[baseMap as keyof typeof tileLayers] || tileLayers.voyager;
     const attr = attributions[baseMap as keyof typeof attributions] || attributions.voyager;
-    
+
     L.tileLayer(url, { attribution: attr }).addTo(map);
 
     // Add Points
@@ -91,7 +98,7 @@ const MapView: React.FC<MapViewProps> = ({ data, config, theme }) => {
       validPoints.forEach(point => {
         const marker = L.circleMarker([Number(point[latKey]), Number(point[lngKey])], {
           radius: 6,
-          fillColor: theme.accent.includes('indigo') ? '#4f46e5' : 
+          fillColor: theme.accent.includes('indigo') ? '#4f46e5' :
                      theme.accent.includes('amber') ? '#f59e0b' : '#8b4513',
           color: '#fff',
           weight: 1,
@@ -109,9 +116,13 @@ const MapView: React.FC<MapViewProps> = ({ data, config, theme }) => {
         markers.push(marker);
       });
 
-      // Fit bounds
-      const group = L.featureGroup(markers);
-      map.fitBounds(group.getBounds().pad(0.1));
+      // If user set a default center and zoom, use those; otherwise fit bounds
+      if (defaultLat !== undefined && defaultLng !== undefined && defaultZoom !== undefined) {
+        map.setView([defaultLat, defaultLng], defaultZoom);
+      } else {
+        const group = L.featureGroup(markers);
+        map.fitBounds(group.getBounds().pad(0.1));
+      }
     }
 
     // Fix map resize issues
@@ -123,7 +134,7 @@ const MapView: React.FC<MapViewProps> = ({ data, config, theme }) => {
     return () => {
       resizeObserver.disconnect();
     };
-  }, [data, config, theme, baseMap, latKey, lngKey, labelKey]);
+  }, [data, config, theme, baseMap, latKey, lngKey, labelKey, defaultLat, defaultLng, defaultZoom]);
 
   return (
     <div className="h-full w-full flex flex-col">
@@ -134,10 +145,10 @@ const MapView: React.FC<MapViewProps> = ({ data, config, theme }) => {
            Live Geopositioning Enabled
          </div>
       </div>
-      
+
       <div className="flex-1 relative m-8 mt-0 rounded-2xl overflow-hidden border border-current/10 shadow-inner bg-zinc-50">
         <div ref={mapContainerRef} className="w-full h-full z-0" />
-        
+
         {/* Overlay HUD */}
         <div className="absolute top-4 left-4 z-[1000] flex flex-col gap-2">
            <div className="bg-white/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-zinc-200 shadow-sm">
