@@ -313,7 +313,7 @@ const Editor: React.FC<EditorProps> = ({ config, data, onConfigChange, onDataCha
             <div className="space-y-6">
               <h2 className="text-xl font-bold text-zinc-800">Visual Aesthetic</h2>
               <div className="grid grid-cols-2 gap-4">
-                {(['classic', 'parchment', 'academic', 'dark', 'highcontrast', 'maritime', 'forest'] as ThemeType[]).map((t) => {
+                {(['classic', 'parchment', 'academic', 'dark', 'highcontrast', 'maritime', 'forest', 'playful'] as ThemeType[]).map((t) => {
                   const labels: Record<string, { name: string; desc: string }> = {
                     classic: { name: "Classic", desc: "Clean and modern baseline." },
                     parchment: { name: "Parchment", desc: "Warm tones and serif fonts." },
@@ -322,6 +322,7 @@ const Editor: React.FC<EditorProps> = ({ config, data, onConfigChange, onDataCha
                     highcontrast: { name: "High Contrast", desc: "WCAG AAA accessible. Maximum legibility." },
                     maritime: { name: "Maritime", desc: "Deep navy with gold accents." },
                     forest: { name: "Forest", desc: "Earthy greens and warm stone." },
+                    playful: { name: "Playful", desc: "Dark purple with ghosted title. Invites discovery." },
                   };
                   const info = labels[t];
                   return (
@@ -515,7 +516,7 @@ const Editor: React.FC<EditorProps> = ({ config, data, onConfigChange, onDataCha
                   <div className="p-2 bg-indigo-50 rounded-xl"><Palette size={24} /></div>
                   <h3 className="font-black text-2xl tracking-tight">IV. Thematic Aesthetic</h3>
                 </div>
-                <p className="text-sm text-zinc-600 leading-relaxed">Seven built-in themes are available in the Visual Aesthetic tab. Each theme controls background color, text color, accent color, font family, and card styling.</p>
+                <p className="text-sm text-zinc-600 leading-relaxed">Eight built-in themes are available in the Visual Aesthetic tab. Each theme controls background color, text color, accent color, font family, and card styling.</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <h5 className="font-bold text-sm">Classic & Academic</h5>
@@ -535,6 +536,10 @@ const Editor: React.FC<EditorProps> = ({ config, data, onConfigChange, onDataCha
                       <span className="text-[9px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded-full font-bold uppercase border border-emerald-200">WCAG AAA</span>
                     </div>
                     <p className="text-xs text-zinc-500 leading-relaxed">Designed to meet WCAG AAA accessibility standards. Uses black text on a white background with solid borders and a high-contrast blue accent. Recommended when your audience includes users with visual impairments or when institutional accessibility compliance is required.</p>
+                  </div>
+                  <div className="space-y-2">
+                    <h5 className="font-bold text-sm">Playful</h5>
+                    <p className="text-xs text-zinc-500 leading-relaxed">A dark purple theme with coral accents that ghosts the site title into the background at low opacity. Creates an atmosphere of discovery and intimacy, as if the viewer is being invited in on a secret. The repeating ghosted title adds depth and texture to the header.</p>
                   </div>
                 </div>
               </section>
