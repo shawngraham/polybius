@@ -99,7 +99,7 @@ const App: React.FC = () => {
         import { createRoot } from 'react-dom/client';
         import { motion, AnimatePresence } from 'framer-motion';
         import * as Lucide from 'lucide-react';
-        import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+        import { BarChart, Bar, LineChart, Line, ScatterChart, Scatter, XAxis, YAxis, ZAxis, Tooltip, ResponsiveContainer, Cell, CartesianGrid, Legend } from 'recharts';
 
         // --- CONSTANTS & TYPES ---
         const THEMES = {
@@ -195,28 +195,148 @@ const App: React.FC = () => {
             ]);
         };
 
-        const ChartView = ({ data, config, theme }) => {
-            const categoryKey = config.categoryKey || 'category';
-            const counts = data.reduce((acc, item) => {
-                const val = item[categoryKey]?.toString() || 'Uncategorized';
-                acc[val] = (acc[val] || 0) + 1;
-                return acc;
-            }, {});
-            const chartData = Object.entries(counts).map(([name, value]) => ({ name, value }));
+        function shiftHueExport(hex) {
+            const r = parseInt(hex.slice(1, 3), 16);
+            const g = parseInt(hex.slice(3, 5), 16);
+            const b = parseInt(hex.slice(5, 7), 16);
+            return '#' + b.toString(16).padStart(2, '0') + r.toString(16).padStart(2, '0') + g.toString(16).padStart(2, '0');
+        }
+        function genColorsExport(primary, secondary, count) {
+            if (count <= 1) return [primary];
+            if (count === 2) return [primary, secondary];
+            const c = [primary, secondary];
+            for (let i = 2; i < count; i++) c.push(shiftHueExport(c[i - 1]));
+            return c;
+        }
 
-            return React.createElement('div', { className: "h-full w-full p-10 flex flex-col" }, [
-                React.createElement('h3', { className: "text-xl font-bold mb-8 uppercase opacity-60" }, "Distribution Analysis"),
-                React.createElement(ResponsiveContainer, { width: "100%", height: "100%" }, 
-                    React.createElement(BarChart, { data: chartData, layout: "vertical" }, [
-                        React.createElement(XAxis, { type: "number", hide: true }),
-                        React.createElement(YAxis, { dataKey: "name", type: "category", width: 100, axisLine: false, tickLine: false, tick: { fontSize: 10, fontWeight: 'bold' } }),
-                        React.createElement(Tooltip, { contentStyle: { borderRadius: '12px', border: 'none' } }),
-                        React.createElement(Bar, { dataKey: "value", radius: [0, 4, 4, 0] }, 
-                            chartData.map((e, i) => React.createElement(Cell, { key: i, fill: '#4f46e5' }))
-                        )
-                    ])
-                )
-            ]);
+        const ChartView = ({ data, config, theme }) => {
+            const chartType = config.chartType || 'bar';
+            const accentHex = theme.accentHex || '#2563eb';
+            const secondaryHex = shiftHueExport(accentHex);
+            const tooltipStyle = { borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontSize: '11px' };
+
+            if (chartType === 'bar' || (!chartType)) {
+                const categoryKey = config.categoryKey || 'category';
+                const valueKey = config.valueKey;
+                let chartData;
+                if (valueKey) {
+                    const labelKey = config.labelKey || 'label';
+                    chartData = data.filter(item => item[valueKey] !== undefined && !isNaN(Number(item[valueKey]))).map(item => ({ name: item[labelKey]?.toString() || 'Unknown', value: Number(item[valueKey]) }));
+                } else {
+                    const counts = data.reduce((acc, item) => { const val = item[categoryKey]?.toString() || 'Uncategorized'; acc[val] = (acc[val] || 0) + 1; return acc; }, {});
+                    chartData = Object.entries(counts).map(([name, value]) => ({ name, value }));
+                }
+                return React.createElement('div', { className: "h-full w-full p-10 flex flex-col" }, [
+                    React.createElement('h3', { key: 'title', className: "text-xl font-bold mb-8 uppercase opacity-60" }, valueKey ? "Value Comparison" : "Distribution Analysis"),
+                    React.createElement('div', { key: 'chart', className: "flex-1 w-full" },
+                        chartData.length > 0 ? React.createElement(ResponsiveContainer, { width: "100%", height: "100%" },
+                            React.createElement(BarChart, { data: chartData, layout: "vertical", margin: { left: 20 } }, [
+                                React.createElement(CartesianGrid, { key: 'grid', strokeDasharray: "3 3", opacity: 0.1, horizontal: false }),
+                                React.createElement(XAxis, { key: 'x', type: "number", hide: true }),
+                                React.createElement(YAxis, { key: 'y', dataKey: "name", type: "category", width: 100, axisLine: false, tickLine: false, tick: { fill: 'currentColor', fontSize: 10, fontWeight: 'bold' } }),
+                                React.createElement(Tooltip, { key: 'tip', cursor: { fill: 'rgba(0,0,0,0.05)' }, contentStyle: tooltipStyle }),
+                                React.createElement(Bar, { key: 'bar', dataKey: "value", radius: [0, 4, 4, 0] },
+                                    chartData.map((e, i) => React.createElement(Cell, { key: i, fill: accentHex, fillOpacity: 0.8 }))
+                                )
+                            ])
+                        ) : React.createElement('div', { className: "h-full flex items-center justify-center opacity-40 italic text-sm" }, "No data available.")
+                    )
+                ]);
+            }
+
+            if (chartType === 'line') {
+                const xKey = config.xKey || 'date';
+                const yKeys = config.yKeys ? (Array.isArray(config.yKeys) ? config.yKeys : [config.yKeys]) : [];
+                if (yKeys.length === 0) return React.createElement('div', { className: "h-full w-full p-10 flex items-center justify-center opacity-40 italic text-sm" }, "Select Y-axis columns.");
+                const chartData = data.filter(item => item[xKey] !== undefined && !isNaN(Number(item[xKey]))).map(item => {
+                    const pt = { x: Number(item[xKey]) };
+                    yKeys.forEach(k => { pt[k] = Number(item[k]) || 0; });
+                    return pt;
+                }).sort((a, b) => a.x - b.x);
+                const colors = genColorsExport(accentHex, secondaryHex, yKeys.length);
+                return React.createElement('div', { className: "h-full w-full p-10 flex flex-col" }, [
+                    React.createElement('h3', { key: 'title', className: "text-xl font-bold mb-8 uppercase opacity-60" }, "Trend Analysis"),
+                    React.createElement('div', { key: 'chart', className: "flex-1 w-full" },
+                        chartData.length > 0 ? React.createElement(ResponsiveContainer, { width: "100%", height: "100%" },
+                            React.createElement(LineChart, { data: chartData, margin: { top: 10, right: 20, bottom: 10, left: 10 } }, [
+                                React.createElement(CartesianGrid, { key: 'grid', strokeDasharray: "3 3", opacity: 0.15 }),
+                                React.createElement(XAxis, { key: 'x', dataKey: "x", type: "number", domain: ['dataMin', 'dataMax'], tick: { fill: 'currentColor', fontSize: 10 }, axisLine: false, tickLine: false }),
+                                React.createElement(YAxis, { key: 'y', tick: { fill: 'currentColor', fontSize: 10 }, axisLine: false, tickLine: false }),
+                                React.createElement(Tooltip, { key: 'tip', contentStyle: tooltipStyle, labelFormatter: (val) => xKey + ': ' + val }),
+                                yKeys.length > 1 && React.createElement(Legend, { key: 'legend', wrapperStyle: { fontSize: '10px' } }),
+                                ...yKeys.map((k, i) => React.createElement(Line, { key: k, type: "monotone", dataKey: k, stroke: colors[i], strokeWidth: 2, dot: { r: 4, fill: colors[i] }, activeDot: { r: 6 } }))
+                            ])
+                        ) : React.createElement('div', { className: "h-full flex items-center justify-center opacity-40 italic text-sm" }, "No numeric data for " + xKey)
+                    )
+                ]);
+            }
+
+            if (chartType === 'xy') {
+                const xKey = config.xKey || 'longitude';
+                const yKey = config.yKey || 'latitude';
+                const labelKey = config.labelKey || 'label';
+                const chartData = data.filter(item => item[xKey] !== undefined && !isNaN(Number(item[xKey])) && item[yKey] !== undefined && !isNaN(Number(item[yKey]))).map(item => ({ x: Number(item[xKey]), y: Number(item[yKey]), label: item[labelKey]?.toString() || '' }));
+                return React.createElement('div', { className: "h-full w-full p-10 flex flex-col" }, [
+                    React.createElement('h3', { key: 'title', className: "text-xl font-bold mb-8 uppercase opacity-60" }, "XY Scatter Plot"),
+                    React.createElement('div', { key: 'chart', className: "flex-1 w-full" },
+                        chartData.length > 0 ? React.createElement(ResponsiveContainer, { width: "100%", height: "100%" },
+                            React.createElement(ScatterChart, { margin: { top: 10, right: 20, bottom: 20, left: 10 } }, [
+                                React.createElement(CartesianGrid, { key: 'grid', strokeDasharray: "3 3", opacity: 0.15 }),
+                                React.createElement(XAxis, { key: 'x', dataKey: "x", type: "number", name: xKey, tick: { fill: 'currentColor', fontSize: 10 }, axisLine: false, tickLine: false }),
+                                React.createElement(YAxis, { key: 'y', dataKey: "y", type: "number", name: yKey, tick: { fill: 'currentColor', fontSize: 10 }, axisLine: false, tickLine: false }),
+                                React.createElement(Tooltip, { key: 'tip', content: ({ payload }) => {
+                                    if (!payload || payload.length === 0) return null;
+                                    const d = payload[0]?.payload;
+                                    return React.createElement('div', { className: "bg-white p-3 rounded-xl shadow-lg text-xs border" }, [
+                                        React.createElement('div', { key: 'l', className: "font-bold mb-1" }, d?.label),
+                                        React.createElement('div', { key: 'x' }, xKey + ': ' + d?.x),
+                                        React.createElement('div', { key: 'y' }, yKey + ': ' + d?.y)
+                                    ]);
+                                }}),
+                                React.createElement(Scatter, { key: 'scatter', data: chartData, fill: accentHex, fillOpacity: 0.7 },
+                                    chartData.map((e, i) => React.createElement(Cell, { key: i, fill: accentHex }))
+                                )
+                            ])
+                        ) : React.createElement('div', { className: "h-full flex items-center justify-center opacity-40 italic text-sm" }, "No numeric data for " + xKey + " and " + yKey)
+                    )
+                ]);
+            }
+
+            if (chartType === '3d') {
+                const xKey = config.xKey || 'longitude';
+                const yKey = config.yKey || 'latitude';
+                const zKey = config.zKey || 'date';
+                const labelKey = config.labelKey || 'label';
+                const chartData = data.filter(item => item[xKey] !== undefined && !isNaN(Number(item[xKey])) && item[yKey] !== undefined && !isNaN(Number(item[yKey])) && item[zKey] !== undefined && !isNaN(Number(item[zKey]))).map(item => ({ x: Number(item[xKey]), y: Number(item[yKey]), z: Number(item[zKey]), label: item[labelKey]?.toString() || '' }));
+                const zMin = chartData.length > 0 ? Math.min(...chartData.map(d => d.z)) : 0;
+                const zMax = chartData.length > 0 ? Math.max(...chartData.map(d => d.z)) : 1;
+                return React.createElement('div', { className: "h-full w-full p-10 flex flex-col" }, [
+                    React.createElement('h3', { key: 'title', className: "text-xl font-bold mb-8 uppercase opacity-60" }, "3D Bubble Chart"),
+                    React.createElement('div', { key: 'chart', className: "flex-1 w-full" },
+                        chartData.length > 0 ? React.createElement(ResponsiveContainer, { width: "100%", height: "100%" },
+                            React.createElement(ScatterChart, { margin: { top: 10, right: 20, bottom: 20, left: 10 } }, [
+                                React.createElement(CartesianGrid, { key: 'grid', strokeDasharray: "3 3", opacity: 0.15 }),
+                                React.createElement(XAxis, { key: 'x', dataKey: "x", type: "number", name: xKey, tick: { fill: 'currentColor', fontSize: 10 }, axisLine: false, tickLine: false }),
+                                React.createElement(YAxis, { key: 'y', dataKey: "y", type: "number", name: yKey, tick: { fill: 'currentColor', fontSize: 10 }, axisLine: false, tickLine: false }),
+                                React.createElement(ZAxis, { key: 'z', dataKey: "z", type: "number", range: [60, 600], domain: [zMin, zMax], name: zKey }),
+                                React.createElement(Tooltip, { key: 'tip', content: ({ payload }) => {
+                                    if (!payload || payload.length === 0) return null;
+                                    const d = payload[0]?.payload;
+                                    return React.createElement('div', { className: "bg-white p-3 rounded-xl shadow-lg text-xs border" }, [
+                                        React.createElement('div', { key: 'l', className: "font-bold mb-1" }, d?.label),
+                                        React.createElement('div', { key: 'x' }, xKey + ': ' + d?.x),
+                                        React.createElement('div', { key: 'y' }, yKey + ': ' + d?.y),
+                                        React.createElement('div', { key: 'z' }, zKey + ': ' + d?.z)
+                                    ]);
+                                }}),
+                                React.createElement(Scatter, { key: 'scatter', data: chartData, fill: accentHex, fillOpacity: 0.6 })
+                            ])
+                        ) : React.createElement('div', { className: "h-full flex items-center justify-center opacity-40 italic text-sm" }, "No numeric data for " + xKey + ", " + yKey + ", " + zKey)
+                    )
+                ]);
+            }
+
+            return React.createElement('div', { className: "h-full w-full p-10 flex items-center justify-center opacity-40" }, "Unknown chart type.");
         };
 
         const NetworkView = ({ data, config, theme }) => {
