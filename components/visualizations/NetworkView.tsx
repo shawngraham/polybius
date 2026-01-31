@@ -13,52 +13,89 @@ interface NodePos {
   y: number;
 }
 
-// Fruchterman-Reingold force-directed layout
-function fruchtermanReingold(
+interface EdgeInfo {
+  source: number;
+  target: number;
+  weight: number; // count of directed references (1 = one-way, 2 = both directions)
+}
+
+// Build edges with weights (count how many times each pair is referenced)
+function buildEdges(data: HeritageDataItem[], connectionsKey: string, labelKey: string): EdgeInfo[] {
+  const edgeMap = new Map<string, { source: number; target: number; weight: number }>();
+
+  data.forEach((item, idx) => {
+    const connections = item[connectionsKey];
+    if (!connections || !Array.isArray(connections)) return;
+
+    connections.forEach((targetId: any) => {
+      const targetIdx = data.findIndex(d => d.id === targetId || d[labelKey] === targetId);
+      if (targetIdx === -1 || targetIdx === idx) return;
+
+      // Canonical key: smaller index first
+      const a = Math.min(idx, targetIdx);
+      const b = Math.max(idx, targetIdx);
+      const key = `${a}-${b}`;
+
+      const existing = edgeMap.get(key);
+      if (existing) {
+        existing.weight += 1;
+      } else {
+        edgeMap.set(key, { source: a, target: b, weight: 1 });
+      }
+    });
+  });
+
+  return [...edgeMap.values()];
+}
+
+// Compute degree (sum of edge weights) per node
+function computeNodeDegrees(edges: EdgeInfo[], nodeCount: number): number[] {
+  const degrees = new Array(nodeCount).fill(0);
+  for (const e of edges) {
+    degrees[e.source] += e.weight;
+    degrees[e.target] += e.weight;
+  }
+  return degrees;
+}
+
+// Force-directed layout with gravity toward centre, better initialisation,
+// and higher iteration count for stable convergence
+function forceDirectedLayout(
   data: HeritageDataItem[],
-  connectionsKey: string,
-  labelKey: string,
+  edges: EdgeInfo[],
   width: number,
   height: number,
-  iterations: number = 100
+  iterations: number = 200
 ): NodePos[] {
   const n = data.length;
   if (n === 0) return [];
 
   const area = width * height;
-  const k = Math.sqrt(area / n); // optimal distance
+  const k = Math.sqrt(area / n) * 0.85; // optimal spring length
+  const cx = width / 2;
+  const cy = height / 2;
 
-  // Initialize positions randomly but deterministically (seeded by index)
-  const positions: NodePos[] = data.map((_, i) => ({
-    x: width * 0.2 + (width * 0.6) * ((i * 7 + 13) % n) / Math.max(n - 1, 1),
-    y: height * 0.2 + (height * 0.6) * ((i * 11 + 3) % n) / Math.max(n - 1, 1),
-  }));
-
-  // Build adjacency
-  const edges: [number, number][] = [];
-  data.forEach((item, idx) => {
-    const connections = item[connectionsKey];
-    if (connections && Array.isArray(connections)) {
-      connections.forEach((targetId: any) => {
-        const targetIdx = data.findIndex(d => d.id === targetId || d[labelKey] === targetId);
-        if (targetIdx !== -1 && targetIdx > idx) {
-          edges.push([idx, targetIdx]);
-        }
-      });
-    }
+  // Initialise in a circle (deterministic, well-spread)
+  const positions: NodePos[] = data.map((_, i) => {
+    const angle = (2 * Math.PI * i) / n;
+    const r = Math.min(width, height) * 0.35;
+    return {
+      x: cx + r * Math.cos(angle),
+      y: cy + r * Math.sin(angle),
+    };
   });
 
-  let temperature = width * 0.1;
-  const cooling = temperature / (iterations + 1);
+  let temperature = Math.min(width, height) * 0.15;
+  const minTemp = 0.5;
 
   for (let iter = 0; iter < iterations; iter++) {
     const disp: NodePos[] = positions.map(() => ({ x: 0, y: 0 }));
 
-    // Repulsive forces between all pairs
+    // Repulsive forces (all pairs)
     for (let i = 0; i < n; i++) {
       for (let j = i + 1; j < n; j++) {
-        let dx = positions[i].x - positions[j].x;
-        let dy = positions[i].y - positions[j].y;
+        const dx = positions[i].x - positions[j].x;
+        const dy = positions[i].y - positions[j].y;
         const dist = Math.sqrt(dx * dx + dy * dy) || 0.01;
         const force = (k * k) / dist;
         const fx = (dx / dist) * force;
@@ -70,34 +107,42 @@ function fruchtermanReingold(
       }
     }
 
-    // Attractive forces along edges
-    for (const [i, j] of edges) {
-      let dx = positions[i].x - positions[j].x;
-      let dy = positions[i].y - positions[j].y;
+    // Attractive forces along edges (scaled by weight)
+    for (const { source, target, weight } of edges) {
+      const dx = positions[source].x - positions[target].x;
+      const dy = positions[source].y - positions[target].y;
       const dist = Math.sqrt(dx * dx + dy * dy) || 0.01;
-      const force = (dist * dist) / k;
+      const force = (dist * dist) / k * (0.5 + weight * 0.5);
       const fx = (dx / dist) * force;
       const fy = (dy / dist) * force;
-      disp[i].x -= fx;
-      disp[i].y -= fy;
-      disp[j].x += fx;
-      disp[j].y += fy;
+      disp[source].x -= fx;
+      disp[source].y -= fy;
+      disp[target].x += fx;
+      disp[target].y += fy;
     }
 
-    // Apply displacements with temperature limiting
+    // Gravity toward centre (prevents disconnected components drifting)
+    const gravity = 0.02;
+    for (let i = 0; i < n; i++) {
+      disp[i].x -= (positions[i].x - cx) * gravity;
+      disp[i].y -= (positions[i].y - cy) * gravity;
+    }
+
+    // Apply displacements clamped by temperature
     for (let i = 0; i < n; i++) {
       const dist = Math.sqrt(disp[i].x * disp[i].x + disp[i].y * disp[i].y) || 0.01;
       const limitedDist = Math.min(dist, temperature);
       positions[i].x += (disp[i].x / dist) * limitedDist;
       positions[i].y += (disp[i].y / dist) * limitedDist;
 
-      // Clamp to bounds with padding
-      const pad = 40;
+      // Clamp to bounds
+      const pad = 50;
       positions[i].x = Math.max(pad, Math.min(width - pad, positions[i].x));
       positions[i].y = Math.max(pad, Math.min(height - pad, positions[i].y));
     }
 
-    temperature -= cooling;
+    // Adaptive cooling
+    temperature = Math.max(minTemp, temperature * 0.97);
   }
 
   return positions;
@@ -107,13 +152,38 @@ const NetworkView: React.FC<NetworkViewProps> = ({ data, config, theme }) => {
   const connectionsKey = config.connectionsKey || 'connections';
   const labelKey = config.labelKey || 'label';
 
-  const svgWidth = 400;
-  const svgHeight = 300;
+  const svgWidth = 500;
+  const svgHeight = 400;
+
+  const edges = useMemo(() => buildEdges(data, connectionsKey, labelKey), [data, connectionsKey, labelKey]);
+  const nodeDegrees = useMemo(() => computeNodeDegrees(edges, data.length), [edges, data.length]);
+  const maxDegree = Math.max(...nodeDegrees, 1);
 
   const positions = useMemo(
-    () => fruchtermanReingold(data, connectionsKey, labelKey, svgWidth, svgHeight, 120),
-    [data, connectionsKey, labelKey]
+    () => forceDirectedLayout(data, edges, svgWidth, svgHeight, 200),
+    [data, edges]
   );
+
+  const maxWeight = Math.max(...edges.map(e => e.weight), 1);
+
+  // Weight filter state
+  const [minWeight, setMinWeight] = useState(1);
+
+  const filteredEdges = useMemo(
+    () => edges.filter(e => e.weight >= minWeight),
+    [edges, minWeight]
+  );
+
+  // Nodes visible = nodes that have at least one visible edge
+  const visibleNodes = useMemo(() => {
+    if (minWeight <= 1) return new Set(data.map((_, i) => i));
+    const s = new Set<number>();
+    for (const e of filteredEdges) {
+      s.add(e.source);
+      s.add(e.target);
+    }
+    return s;
+  }, [filteredEdges, minWeight, data]);
 
   // Zoom and pan state
   const [viewBox, setViewBox] = useState({ x: 0, y: 0, w: svgWidth, h: svgHeight });
@@ -127,7 +197,6 @@ const NetworkView: React.FC<NetworkViewProps> = ({ data, config, theme }) => {
     setViewBox(prev => {
       const newW = prev.w * scaleFactor;
       const newH = prev.h * scaleFactor;
-      // Zoom toward center of current view
       const dx = (prev.w - newW) / 2;
       const dy = (prev.h - newH) / 2;
       return { x: prev.x + dx, y: prev.y + dy, w: newW, h: newH };
@@ -184,6 +253,24 @@ const NetworkView: React.FC<NetworkViewProps> = ({ data, config, theme }) => {
           >Reset</button>
         </div>
       </div>
+
+      {/* Edge weight filter */}
+      {maxWeight > 1 && (
+        <div className="flex items-center gap-3 mb-3 px-1">
+          <label className="text-[10px] font-bold opacity-50 uppercase whitespace-nowrap">Min edge weight:</label>
+          <input
+            type="range"
+            min={1}
+            max={maxWeight}
+            step={1}
+            value={minWeight}
+            onChange={(e) => setMinWeight(Number(e.target.value))}
+            className="flex-1 h-1 accent-current opacity-60"
+          />
+          <span className="text-[10px] font-bold opacity-60 min-w-[24px] text-right">{minWeight}</span>
+        </div>
+      )}
+
       <div className="flex-1 relative overflow-hidden bg-current/5 rounded-2xl border border-current/10">
         <svg
           ref={svgRef}
@@ -196,68 +283,76 @@ const NetworkView: React.FC<NetworkViewProps> = ({ data, config, theme }) => {
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
         >
-           {/* Connections */}
-           {data.map((item, idx) => {
-             if (idx >= positions.length) return null;
-             const x = positions[idx].x;
-             const y = positions[idx].y;
+          {/* Edges */}
+          {filteredEdges.map(({ source, target, weight }) => {
+            if (source >= positions.length || target >= positions.length) return null;
+            const x1 = positions[source].x;
+            const y1 = positions[source].y;
+            const x2 = positions[target].x;
+            const y2 = positions[target].y;
 
-             const connections = item[connectionsKey];
-             if (connections && Array.isArray(connections)) {
-               return connections.map((targetId: any) => {
-                 const targetIdx = data.findIndex(d => d.id === targetId || d[labelKey] === targetId);
-                 if (targetIdx === -1 || targetIdx >= positions.length) return null;
-                 const tx = positions[targetIdx].x;
-                 const ty = positions[targetIdx].y;
+            // Scale stroke width and opacity by weight
+            const strokeW = 1.5 + (weight / maxWeight) * 3;
+            const opacity = 0.25 + (weight / maxWeight) * 0.45;
 
-                 return (
-                   <line
-                     key={`${item.id}-${targetId}`}
-                     x1={x} y1={y} x2={tx} y2={ty}
-                     stroke="currentColor" strokeWidth="1" className="opacity-20"
-                   />
-                 );
-               });
-             }
-             return null;
-           })}
+            return (
+              <line
+                key={`e-${source}-${target}`}
+                x1={x1} y1={y1} x2={x2} y2={y2}
+                stroke={theme.accentHex}
+                strokeWidth={strokeW}
+                opacity={opacity}
+                strokeLinecap="round"
+              />
+            );
+          })}
 
-           {/* Nodes */}
-           {data.map((item, idx) => {
-             if (idx >= positions.length) return null;
-             const x = positions[idx].x;
-             const y = positions[idx].y;
+          {/* Nodes */}
+          {data.map((item, idx) => {
+            if (idx >= positions.length) return null;
+            if (!visibleNodes.has(idx)) return null;
+            const x = positions[idx].x;
+            const y = positions[idx].y;
 
-             return (
-               <g key={item.id || idx} className="group">
-                 <circle
-                   cx={x} cy={y} r="12"
-                   className={`${theme.accent.replace('bg-', 'fill-')} transition-transform group-hover:scale-125`}
-                 />
-                 <text
-                  x={x} y={y + 24}
+            // Scale node radius by degree
+            const degree = nodeDegrees[idx];
+            const r = 6 + (degree / maxDegree) * 10;
+
+            return (
+              <g key={item.id || idx} className="group">
+                <circle
+                  cx={x} cy={y} r={r}
+                  fill={theme.accentHex}
+                  opacity={0.85}
+                  className="transition-all"
+                  stroke={theme.accentHex}
+                  strokeWidth="2"
+                  strokeOpacity="0.3"
+                />
+                <text
+                  x={x} y={y + r + 12}
                   fontSize="8"
                   textAnchor="middle"
                   className="fill-current font-bold"
-                 >
-                   {item[labelKey]?.toString() || 'Untitled'}
-                 </text>
-                 <text
-                  x={x} y={y + 2}
-                  fontSize="6"
+                >
+                  {item[labelKey]?.toString() || 'Untitled'}
+                </text>
+                <text
+                  x={x} y={y + 3}
+                  fontSize="7"
                   textAnchor="middle"
                   fill="white"
                   className="font-bold pointer-events-none"
-                 >
-                   {idx + 1}
-                 </text>
-               </g>
-             );
-           })}
+                >
+                  {degree}
+                </text>
+              </g>
+            );
+          })}
         </svg>
       </div>
       <div className="mt-4 flex justify-between text-[10px] font-bold opacity-30 uppercase">
-        <span>Fruchterman-Reingold layout</span>
+        <span>Force-directed layout &middot; {filteredEdges.length} edge{filteredEdges.length !== 1 ? 's' : ''}</span>
         <span>Scroll to zoom, drag to pan</span>
         <span>Column: {connectionsKey}</span>
       </div>
