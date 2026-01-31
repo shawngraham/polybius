@@ -286,7 +286,7 @@ const Viewer: React.FC<ViewerProps> = ({ config, data }) => {
         </div>
 
         {/* Sticky Visualization (desktop only) */}
-        <div className={`hidden md:block w-1/2 h-screen sticky top-0 right-0 overflow-hidden pointer-events-none md:pointer-events-auto transition-all duration-700 ${isTextActive ? 'opacity-0 w-0 p-0' : 'opacity-100'}`}>
+        <div className={`hidden md:block h-screen sticky top-0 right-0 overflow-hidden transition-all duration-700 ${isTextActive ? 'opacity-0 pointer-events-none' : 'opacity-100 w-1/2 pointer-events-auto'}`} style={isTextActive ? { width: 0, padding: 0 } : undefined}>
           <div className={`h-full w-full p-8 flex items-center ${vizAlignClass} transition-all duration-700`}>
              <div className={`w-full h-[85vh] rounded-3xl overflow-hidden border ${theme.card} ${theme.cardShadow} transition-all duration-700 relative`}>
                <AnimatePresence mode="wait">
