@@ -1,5 +1,5 @@
 
-Polybius is a **Static Site Generator (SSG)** tailored for Digital Humanities. It bridges the gap between raw spreadsheet data and immersive narrative. You provide the historical evidence (CSV), we provide the interactive loom.
+Polybius is a **Static Site Generator (SSG)** tailored for Digital Humanities. It bridges the gap between raw spreadsheet data and immersive narrative. 
 
 [Use online at shawngraham.github.io/polybius](https://shawngraham.github.io/polybius).
 
@@ -27,9 +27,7 @@ Your CSV must have a header row. While header names are flexible, follow these g
     
 + **Labels**: Names of people, places, or events. Used as primary text in tooltips.
     
-
 + **Temporal**: Years should be numeric (e.g., `1250`). Standard ISO dates also work.
-    
 
 +**Geospatial**: Use decimal coordinates (e.g., Lat `39.65`, Lng `66.97`).
 
@@ -62,6 +60,9 @@ Mapping uses leaflet. If you want to have a historical map as base map (ie, from
     voyager: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
   };
 ```
+## Manual
+
+There's a wee manual - hit the ? icon in the editor window for more guidance.
 
 ## Extend?
 
