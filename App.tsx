@@ -97,6 +97,11 @@ const App: React.FC = () => {
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
+        .mobile-viz { display: none; }
+        @media (max-width: 767px) {
+            .mobile-viz { display: block; }
+            .desktop-viz { display: none !important; }
+        }
     </style>
 
     <script type="importmap">
@@ -506,38 +511,53 @@ const App: React.FC = () => {
 
             return React.createElement('div', { className: "min-h-screen transition-colors duration-700 " + theme.bg + " " + theme.text + " " + theme.font }, [
                 React.createElement('style', null, "::selection { background-color: " + theme.accentHex + "33; }"),
-                React.createElement('header', { className: "h-[70vh] flex flex-col items-center justify-center text-center px-6 relative" }, [
-                    React.createElement('h1', { className: "text-5xl md:text-7xl font-bold mb-4 tracking-tight" }, config.title),
-                    React.createElement('div', { className: "h-1 w-24 rounded-full mx-auto mt-2 mb-6", style: { backgroundColor: theme.accentHex } }),
-                    React.createElement('p', { className: "text-xl md:text-2xl opacity-80 italic max-w-2xl" }, config.subtitle),
-                    React.createElement('div', { className: "mt-8 flex flex-col items-center" }, [
+                React.createElement('header', { className: "h-[50vh] md:h-[70vh] flex flex-col items-center justify-center text-center px-4 md:px-6 relative" }, [
+                    React.createElement('h1', { className: "text-3xl sm:text-5xl md:text-7xl font-bold mb-4 tracking-tight leading-tight" }, config.title),
+                    React.createElement('div', { className: "h-1 w-24 rounded-full mx-auto mt-2 mb-4 md:mb-6", style: { backgroundColor: theme.accentHex } }),
+                    React.createElement('p', { className: "text-base sm:text-xl md:text-2xl opacity-80 italic max-w-2xl mb-6 md:mb-0" }, config.subtitle),
+                    React.createElement('div', { className: "mt-6 md:mt-8 flex flex-col items-center" }, [
                         React.createElement('span', { className: "text-xs font-bold uppercase tracking-widest opacity-50" }, "Authored by"),
-                        React.createElement('span', { className: "text-lg font-medium border-b border-current" }, config.author)
+                        React.createElement('span', { className: "text-base sm:text-lg font-medium border-b border-current" }, config.author)
                     ]),
                     React.createElement('div', { className: "absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce opacity-40" },
                         React.createElement(Lucide.ChevronDown, { size: 24 })
                     )
                 ]),
                 React.createElement('div', { className: "relative flex flex-col md:flex-row" }, [
-                    React.createElement('div', { className: "px-6 pb-20 transition-all duration-700 " + (isTextActive ? "w-full" : "w-full md:w-1/2") }, config.sections.map(s => {
+                    React.createElement('div', { className: "px-4 md:px-6 pb-10 md:pb-20 transition-all duration-700 " + (isTextActive ? "w-full" : "w-full md:w-1/2") }, config.sections.map(s => {
                         const alignCls = s.alignment === 'right' ? 'justify-end' : s.alignment === 'center' ? 'justify-center' : 'justify-start';
+                        const renderMobileViz = () => {
+                            if (s.cardType === 'TEXT') return null;
+                            if (s.cardType === 'MAP') return React.createElement(MapView, { data, config: s.config, theme });
+                            if (s.cardType === 'TIMELINE') return React.createElement(TimelineView, { data, config: s.config, theme });
+                            if (s.cardType === 'STATISTICS') return React.createElement(ChartView, { data, config: s.config, theme });
+                            if (s.cardType === 'NETWORK') return React.createElement(NetworkView, { data, config: s.config, theme });
+                            if (s.cardType === 'GALLERY') return React.createElement(ImageView, { data, config: s.config, theme });
+                            if (s.cardType === 'IMAGE') return React.createElement(SingleImageView, { data, config: s.config, theme });
+                            return null;
+                        };
                         if (s.cardType === 'TEXT') {
                             const taCls = s.config.textAlign === 'center' ? 'text-center' : s.config.textAlign === 'right' ? 'text-right' : s.config.textAlign === 'justify' ? 'text-justify' : 'text-left';
-                            return React.createElement('div', { key: s.id, ref: el => sectionRefs.current[s.id] = el, 'data-id': s.id, className: "min-h-[80vh] flex items-center " + alignCls + " py-20 transition-opacity duration-500 " + (activeId === s.id ? 'opacity-100' : 'opacity-20') },
-                                React.createElement('div', { className: "w-full p-12 rounded-2xl border border-t-4 " + theme.card + " " + theme.cardShadow + " " + taCls, style: { borderTopColor: theme.accentHex } }, [
-                                    React.createElement('h2', { className: "text-3xl font-bold mb-6 " + theme.headingColor }, s.title),
-                                    React.createElement('p', { className: "text-xl leading-relaxed whitespace-pre-wrap" }, s.content)
+                            return React.createElement('div', { key: s.id, ref: el => sectionRefs.current[s.id] = el, 'data-id': s.id, className: "min-h-[60vh] md:min-h-[80vh] flex items-center " + alignCls + " py-10 md:py-20 transition-opacity duration-500 " + (activeId === s.id ? 'opacity-100' : 'md:opacity-20 opacity-100') },
+                                React.createElement('div', { className: "w-full p-6 sm:p-8 md:p-12 rounded-2xl border border-t-4 " + theme.card + " " + theme.cardShadow + " " + taCls, style: { borderTopColor: theme.accentHex } }, [
+                                    React.createElement('h2', { key: 'h', className: "text-xl sm:text-2xl md:text-3xl font-bold mb-4 md:mb-6 " + theme.headingColor }, s.title),
+                                    React.createElement('p', { key: 'p', className: "text-base sm:text-lg md:text-xl leading-relaxed whitespace-pre-wrap" }, s.content)
                                 ])
                             );
                         }
-                        return React.createElement('div', { key: s.id, ref: el => sectionRefs.current[s.id] = el, 'data-id': s.id, className: "min-h-[80vh] flex items-center " + alignCls + " py-20 transition-opacity duration-500 " + (activeId === s.id ? 'opacity-100' : 'opacity-20') },
-                            React.createElement('div', { className: "max-w-lg p-8 rounded-2xl border border-t-4 " + theme.card + " " + theme.cardShadow, style: { borderTopColor: theme.accentHex } }, [
-                                React.createElement('h2', { className: "text-3xl font-bold mb-6 " + theme.headingColor }, s.title),
-                                React.createElement('p', { className: "text-lg leading-relaxed whitespace-pre-wrap" }, s.content)
-                            ])
-                        );
+                        return React.createElement('div', { key: s.id }, [
+                            React.createElement('div', { key: 'text', ref: el => sectionRefs.current[s.id] = el, 'data-id': s.id, className: "min-h-[40vh] md:min-h-[80vh] flex items-center " + alignCls + " py-10 md:py-20 transition-opacity duration-500 " + (activeId === s.id ? 'opacity-100' : 'md:opacity-20 opacity-100') },
+                                React.createElement('div', { className: "w-full md:max-w-lg p-6 sm:p-8 rounded-2xl border border-t-4 " + theme.card + " " + theme.cardShadow, style: { borderTopColor: theme.accentHex } }, [
+                                    React.createElement('h2', { key: 'h', className: "text-xl sm:text-2xl md:text-3xl font-bold mb-4 md:mb-6 " + theme.headingColor }, s.title),
+                                    React.createElement('p', { key: 'p', className: "text-base md:text-lg leading-relaxed whitespace-pre-wrap" }, s.content)
+                                ])
+                            ),
+                            React.createElement('div', { key: 'mviz', className: "mobile-viz mb-8 -mt-4" },
+                                React.createElement('div', { className: "w-full h-[60vh] rounded-2xl overflow-hidden border " + theme.card + " " + theme.cardShadow }, renderMobileViz())
+                            )
+                        ]);
                     })),
-                    React.createElement('div', { className: "hidden md:block w-1/2 h-screen sticky top-0 transition-all duration-700 " + (isTextActive ? "opacity-0 w-0 p-0" : "opacity-100") },
+                    React.createElement('div', { className: "desktop-viz hidden md:block w-1/2 h-screen sticky top-0 transition-all duration-700 " + (isTextActive ? "opacity-0 w-0 p-0" : "opacity-100") },
                         React.createElement('div', { className: "h-full p-8 flex items-center transition-all duration-700 " + vizAlignCls },
                             React.createElement('div', { className: "w-full h-[85vh] rounded-3xl overflow-hidden border relative " + theme.card + " " + theme.cardShadow },
                                 React.createElement(AnimatePresence, { mode: 'wait' },
@@ -547,9 +567,9 @@ const App: React.FC = () => {
                         )
                     )
                 ]),
-                React.createElement('footer', { className: "py-20 text-center opacity-60" }, [
-                    React.createElement('div', { className: "h-px w-32 mx-auto mb-12", style: { backgroundColor: theme.accentHex } }),
-                    React.createElement('h2', { className: "text-2xl font-bold" }, config.title),
+                React.createElement('footer', { className: "py-12 md:py-20 text-center opacity-60 px-4" }, [
+                    React.createElement('div', { className: "h-px w-32 mx-auto mb-8 md:mb-12", style: { backgroundColor: theme.accentHex } }),
+                    React.createElement('h2', { className: "text-xl md:text-2xl font-bold" }, config.title),
                     React.createElement('p', { className: "text-xs mt-2 uppercase tracking-widest" }, "Powered by Polybius")
                 ])
             ]);
