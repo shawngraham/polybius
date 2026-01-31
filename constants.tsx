@@ -126,7 +126,7 @@ export const INITIAL_CONFIG: SiteConfig = {
     {
       id: '5',
       title: "Monuments of Exchange",
-      content: "The great cities of the Silk Road left behind architectural marvels that still stand as testaments to centuries of cultural exchange and artistic synthesis.",
+      content: "The great cities of the Silk Road left behind architectural marvels that still stand as testaments to centuries of cultural exchange and artistic synthesis. Images CC BY-SA via Wikimedia Commons users Bgag, Zhangzhugang, Zenith210, Mariordo, Wolfgang Groesel. Image of Ghengis Khan a reproduction of a 13th century portrait, public domain. ",
       cardType: CardType.GALLERY,
       config: { imageKey: 'imageUrl', labelKey: 'label', descriptionKey: 'description' }
     }
@@ -134,10 +134,10 @@ export const INITIAL_CONFIG: SiteConfig = {
 };
 
 export const SAMPLE_DATA = [
-  { id: 'S1', label: "Samarkand", date: 1210, latitude: 39.65, longitude: 66.97, category: "Trade Hub", connections: ['S2', 'S4'], description: "A jewel of the Silk Road and center of Islamic scholarship.", imageUrl: "https://upload.wikimedia.org/wikipedia/commons/a/ac/Registan_-_Pair.jpg" },
-  { id: 'S2', label: "Dunhuang", date: 1225, latitude: 40.14, longitude: 94.66, category: "Cultural Hub", connections: ['S1', 'S3'], description: "Gateway to the Mogao Caves, a treasury of Buddhist art.", imageUrl: "https://upload.wikimedia.org/wikipedia/commons/e/ef/Dunhuang_Mogao_Ku_2013.12.31_13-07-36.jpg" },
-  { id: 'S3', label: "Khanbaliq", date: 1264, latitude: 39.90, longitude: 116.40, category: "Capital", connections: ['S2'], description: "Capital of the Yuan dynasty under Kublai Khan.", imageUrl: "https://upload.wikimedia.org/wikipedia/commons/8/80/YuanEmperorAlbumGenghisPortrait.jpg" },
-  { id: 'S4', label: "Tabriz", date: 1250, latitude: 38.08, longitude: 46.29, category: "Trade Hub", connections: ['S1', 'S5'], description: "Ilkhanate capital and crossroads of East-West commerce.", imageUrl: "https://upload.wikimedia.org/wikipedia/commons/1/1e/Blue_mosque_Tabriz.jpg" },
-  { id: 'S5', label: "Venice", date: 1271, latitude: 45.44, longitude: 12.31, category: "Maritime Power", connections: ['S4'], description: "Maritime republic and departure point for Marco Polo.", imageUrl: "https://upload.wikimedia.org/wikipedia/commons/b/b4/Venezia_Panorama_%28cropped%29.jpg" },
-  { id: 'S6', label: "Constantinople", date: 1204, latitude: 41.00, longitude: 28.97, category: "Trade Hub", connections: ['S4', 'S5'], description: "Byzantine capital bridging Europe and Asia.", imageUrl: "https://upload.wikimedia.org/wikipedia/commons/e/ea/Hagia-Sophia-Innenansicht.jpg" },
+  { id: 'S1', label: "Samarkand", date: 1210, latitude: 39.65, longitude: 66.97, category: "Trade Hub", connections: ['S2', 'S4'], description: "A jewel of the Silk Road and center of Islamic scholarship.", imageUrl: "https://upload.wikimedia.org/wikipedia/commons/6/61/Registan_02.jpg" },
+  { id: 'S2', label: "Dunhuang", date: 1225, latitude: 40.14, longitude: 94.66, category: "Cultural Hub", connections: ['S1', 'S3'], description: "Gateway to the Mogao Caves, a treasury of Buddhist art.", imageUrl: "https://upload.wikimedia.org/wikipedia/commons/3/3f/Dunhuang_Mogao_Ku_2013.12.31_12-30-18.jpg" },
+  { id: 'S3', label: "Khanbaliq", date: 1264, latitude: 39.90, longitude: 116.40, category: "Capital", connections: ['S2'], description: "Capital of the Yuan dynasty under Kublai Khan.", imageUrl: "https://upload.wikimedia.org/wikipedia/commons/3/35/YuanEmperorAlbumGenghisPortrait.jpg" },
+  { id: 'S4', label: "Tabriz", date: 1250, latitude: 38.08, longitude: 46.29, category: "Trade Hub", connections: ['S1', 'S5'], description: "Ilkhanate capital and crossroads of East-West commerce.", imageUrl: "https://upload.wikimedia.org/wikipedia/commons/9/9d/Blue_mosque_tabriz.JPG" },
+  { id: 'S5', label: "Venice", date: 1271, latitude: 45.44, longitude: 12.31, category: "Maritime Power", connections: ['S4'], description: "Maritime republic and departure point for Marco Polo.", imageUrl: "https://upload.wikimedia.org/wikipedia/commons/0/0f/Canal_Grande_Ca_Sagredo_Venezia_07_2017_4442.jpg" },
+  { id: 'S6', label: "Constantinople", date: 1204, latitude: 41.00, longitude: 28.97, category: "Trade Hub", connections: ['S4', 'S5'], description: "Byzantine capital bridging Europe and Asia.", imageUrl: "https://upload.wikimedia.org/wikipedia/commons/e/e2/Hagia_Sophia_Innenansicht_2011.jpg" },
 ];
