@@ -9,7 +9,7 @@ import ChartView from './visualizations/ChartView.tsx';
 import ImageView from './visualizations/ImageView.tsx';
 import SingleImageView from './visualizations/SingleImageView.tsx';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ExternalLink, Users, BookOpen, ChevronDown } from 'lucide-react';
+import { ExternalLink, Users, BookOpen, ChevronDown, Play } from 'lucide-react';
 
 interface ViewerProps {
   config: SiteConfig;
@@ -62,6 +62,74 @@ const Viewer: React.FC<ViewerProps> = ({ config, data }) => {
       default:
         return <div className="flex items-center justify-center h-full text-zinc-400">Visualization not supported.</div>;
     }
+  };
+
+  // Parse video embeds from text content
+  const parseVideoEmbeds = (text: string) => {
+    const urlRegex = /(https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/|vimeo\.com\/)([\w-]+)[^\s]*)/gi;
+    const parts: { type: 'text' | 'video'; content: string; embedUrl?: string }[] = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = urlRegex.exec(text)) !== null) {
+      // Add text before the URL
+      if (match.index > lastIndex) {
+        parts.push({ type: 'text', content: text.slice(lastIndex, match.index) });
+      }
+
+      const fullUrl = match[1];
+      const videoId = match[2];
+      let embedUrl = '';
+
+      if (fullUrl.includes('youtube.com') || fullUrl.includes('youtu.be')) {
+        embedUrl = `https://www.youtube.com/embed/${videoId}`;
+      } else if (fullUrl.includes('vimeo.com')) {
+        embedUrl = `https://player.vimeo.com/video/${videoId}`;
+      }
+
+      parts.push({ type: 'video', content: fullUrl, embedUrl });
+      lastIndex = match.index + match[0].length;
+    }
+
+    // Add remaining text
+    if (lastIndex < text.length) {
+      parts.push({ type: 'text', content: text.slice(lastIndex) });
+    }
+
+    return parts.length > 0 ? parts : [{ type: 'text' as const, content: text }];
+  };
+
+  const renderTextWithEmbeds = (text: string) => {
+    const parts = parseVideoEmbeds(text);
+    const hasVideos = parts.some(p => p.type === 'video');
+
+    if (!hasVideos) {
+      return <p className="text-base sm:text-lg md:text-xl leading-relaxed whitespace-pre-wrap opacity-90">{text}</p>;
+    }
+
+    return (
+      <div className="space-y-6">
+        {parts.map((part, i) => {
+          if (part.type === 'video' && part.embedUrl) {
+            return (
+              <div key={i} className="relative w-full rounded-xl overflow-hidden shadow-lg" style={{ paddingBottom: '56.25%' }}>
+                <iframe
+                  src={part.embedUrl}
+                  className="absolute inset-0 w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  title="Embedded video"
+                />
+              </div>
+            );
+          }
+          if (part.content.trim()) {
+            return <p key={i} className="text-base sm:text-lg md:text-xl leading-relaxed whitespace-pre-wrap opacity-90">{part.content}</p>;
+          }
+          return null;
+        })}
+      </div>
+    );
   };
 
   return (
@@ -151,9 +219,7 @@ const Viewer: React.FC<ViewerProps> = ({ config, data }) => {
                     <h2 className={`text-xl sm:text-2xl md:text-3xl font-bold mb-4 md:mb-6 border-b pb-2 inline-block border-current/20 ${theme.headingColor}`}>
                       {section.title}
                     </h2>
-                    <p className="text-base sm:text-lg md:text-xl leading-relaxed whitespace-pre-wrap opacity-90">
-                      {section.content}
-                    </p>
+                    {renderTextWithEmbeds(section.content)}
                   </div>
                 </div>
               );

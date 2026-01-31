@@ -241,6 +241,7 @@ function renderXYChart(data: HeritageDataItem[], config: any, theme: any, accent
               <XAxis
                 dataKey="x"
                 type="number"
+                domain={['dataMin', 'dataMax']}
                 name={xKey}
                 tick={{ fill: 'currentColor', fontSize: 10 }}
                 axisLine={false}
@@ -250,6 +251,7 @@ function renderXYChart(data: HeritageDataItem[], config: any, theme: any, accent
               <YAxis
                 dataKey="y"
                 type="number"
+                domain={['dataMin', 'dataMax']}
                 name={yKey}
                 tick={{ fill: 'currentColor', fontSize: 10 }}
                 axisLine={false}
@@ -343,6 +345,7 @@ function renderBubbleChart(data: HeritageDataItem[], config: any, theme: any, ac
               <XAxis
                 dataKey="x"
                 type="number"
+                domain={['dataMin', 'dataMax']}
                 name={xKey}
                 tick={{ fill: 'currentColor', fontSize: 10 }}
                 axisLine={false}
@@ -352,6 +355,7 @@ function renderBubbleChart(data: HeritageDataItem[], config: any, theme: any, ac
               <YAxis
                 dataKey="y"
                 type="number"
+                domain={['dataMin', 'dataMax']}
                 name={yKey}
                 tick={{ fill: 'currentColor', fontSize: 10 }}
                 axisLine={false}
