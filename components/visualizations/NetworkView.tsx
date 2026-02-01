@@ -14,7 +14,7 @@ function buildEdges(data: HeritageDataItem[], connectionsKey: string, labelKey: 
   const edgeMap = new Map<string, { source: number; target: number; weight: number }>();
   data.forEach((item, idx) => {
     const connections = item[connectionsKey];
-    const connectionList = typeof connections === 'string' ? connections.split(',').map(s => s.trim()) : connections;
+    const connectionList = typeof connections === 'string' ? connections.split(';').map(s => s.trim()).filter(Boolean) : connections;
     if (!Array.isArray(connectionList)) return;
 
     connectionList.forEach((targetId: any) => {

@@ -475,10 +475,10 @@ const Editor: React.FC<EditorProps> = ({ config, data, onConfigChange, onDataCha
 
                       <div className="border-l-4 border-indigo-500 pl-4 py-1">
                         <h5 className="font-bold text-xs uppercase text-zinc-400 mb-2">Relational View (Network)</h5>
-                        <p className="text-sm text-zinc-700 mb-2">Requires an **ID** column and a **Connections** column (Comma-separated IDs or labels).</p>
+                        <p className="text-sm text-zinc-700 mb-2">Requires an **ID** column and a **Connections** column (semicolon-separated IDs or labels).</p>
                         <div className="bg-zinc-900 rounded-lg p-3 font-mono text-[10px] text-zinc-400">
                           id,label,connections<br/>
-                          S1,Samarkand,"S2,S4"<br/>
+                          S1,Samarkand,S2;S4<br/>
                           S2,Dunhuang,S1
                         </div>
                         <p className="text-xs text-zinc-500 mt-2 leading-relaxed"><strong>Layout:</strong> Nodes are arranged using a force-directed algorithm with gravity toward the centre — connected nodes are pulled together while unconnected ones repel. Node size scales with degree (total edge count).</p>

@@ -444,7 +444,7 @@ const App: React.FC = () => {
             const edgeMap = new Map();
             data.forEach((item, idx) => {
                 const raw = item[connectionsKey];
-                const conns = typeof raw === 'string' ? raw.split(',').map(s => s.trim()) : raw;
+                const conns = typeof raw === 'string' ? raw.split(';').map(s => s.trim()).filter(Boolean) : raw;
                 if (!Array.isArray(conns)) return;
                 conns.forEach(targetId => {
                     const targetIdx = data.findIndex(d => d.id === targetId || d[labelKey] === targetId);
