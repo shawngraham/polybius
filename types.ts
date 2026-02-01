@@ -49,6 +49,6 @@ export interface HeritageDataItem {
   category?: string;
   description?: string;
   imageUrl?: string;
-  connections?: string[]; // IDs of related items
+  connections?: string[]; // IDs of related items (semicolon-separated in CSV)
   [key: string]: any;
 }
