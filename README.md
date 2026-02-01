@@ -3,6 +3,8 @@ Polybius is a **Static Site Generator (SSG)** tailored for Digital Humanities. I
 
 [Use online at shawngraham.github.io/polybius](https://shawngraham.github.io/polybius).
 
+There is a [tutorial available](https://shawngraham.github.io/polybius-tutorial).
+
 ## Run Locally
 
 **Prerequisites:**  Node.js
