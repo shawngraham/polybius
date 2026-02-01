@@ -112,10 +112,11 @@ const Viewer: React.FC<ViewerProps> = ({ config, data }) => {
         {parts.map((part, i) => {
           if (part.type === 'video' && part.embedUrl) {
             return (
-              <div key={i} className="relative w-full rounded-xl overflow-hidden shadow-lg" style={{ paddingBottom: '56.25%' }}>
+              <div key={i} className="relative w-full rounded-xl overflow-hidden shadow-lg" style={{ paddingBottom: '56.25%', zIndex: 0, isolation: 'isolate' as any }}>
                 <iframe
                   src={part.embedUrl}
                   className="absolute inset-0 w-full h-full"
+                  style={{ zIndex: 0 }}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                   title="Embedded video"
@@ -215,7 +216,7 @@ const Viewer: React.FC<ViewerProps> = ({ config, data }) => {
                     activeSectionId === section.id ? 'opacity-100' : 'md:opacity-20 opacity-100'
                   }`}
                 >
-                  <div className={`w-full p-6 sm:p-8 md:p-12 rounded-2xl border border-t-4 ${theme.card} ${theme.cardShadow} backdrop-blur-sm ${textAlignClass}`} style={{ borderTopColor: theme.accentHex }}>
+                  <div className={`w-full p-6 sm:p-8 md:p-12 rounded-2xl border border-t-4 ${theme.card} ${theme.cardShadow} backdrop-blur-sm ${textAlignClass}`} style={{ borderTopColor: theme.accentHex, isolation: 'isolate' as any }}>
                     <h2 className={`text-xl sm:text-2xl md:text-3xl font-bold mb-4 md:mb-6 border-b pb-2 inline-block border-current/20 ${theme.headingColor}`}>
                       {section.title}
                     </h2>
