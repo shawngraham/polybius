@@ -14,7 +14,11 @@ const ImageView: React.FC<ImageViewProps> = ({ data, config, theme }) => {
   const labelKey = config.labelKey || 'label';
   const descKey = config.descriptionKey || 'description';
 
-  const items = data.filter(d => d[imageKey]);
+  const selectedIds: string[] | undefined = config.selectedItemIds;
+  const allImageItems = data.filter(d => d[imageKey]);
+  const items = selectedIds && selectedIds.length > 0
+    ? allImageItems.filter(d => selectedIds.includes(String(d.id)))
+    : allImageItems;
   const [activeIndex, setActiveIndex] = useState(0);
 
   if (items.length === 0) {

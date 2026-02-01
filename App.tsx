@@ -443,8 +443,9 @@ const App: React.FC = () => {
         function buildEdgesExport(data, connectionsKey, labelKey) {
             const edgeMap = new Map();
             data.forEach((item, idx) => {
-                const conns = item[connectionsKey];
-                if (!conns || !Array.isArray(conns)) return;
+                const raw = item[connectionsKey];
+                const conns = typeof raw === 'string' ? raw.split(',').map(s => s.trim()) : raw;
+                if (!Array.isArray(conns)) return;
                 conns.forEach(targetId => {
                     const targetIdx = data.findIndex(d => d.id === targetId || d[labelKey] === targetId);
                     if (targetIdx === -1 || targetIdx === idx) return;
@@ -505,20 +506,38 @@ const App: React.FC = () => {
         const NetworkView = ({ data, config, theme }) => {
     const connectionsKey = config.connectionsKey || 'connections';
     const labelKey = config.labelKey || 'label';
-    const initialMinWeight = config.minWeight || 1; // Sync with Editor config
+    const initialMinWeight = config.minWeight || 1;
     const svgW = 600, svgH = 500;
 
     const [hoveredNode, setHoveredNode] = useState(null);
     const [minWeight, setMinWeight] = useState(initialMinWeight);
+    const [viewBox, setViewBox] = useState({ x: 0, y: 0, w: svgW, h: svgH });
+    const [isPanning, setIsPanning] = useState(false);
+    const panStart = useRef({ x: 0, y: 0, vx: 0, vy: 0 });
+    const containerRef = useRef(null);
+    const svgRef = useRef(null);
+
+    useEffect(() => {
+        const el = containerRef.current;
+        if (!el) return;
+        const onWheel = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const scale = e.deltaY > 0 ? 1.1 : 0.9;
+            setViewBox(v => ({ x: v.x + (v.w - v.w * scale) / 2, y: v.y + (v.h - v.h * scale) / 2, w: v.w * scale, h: v.h * scale }));
+        };
+        el.addEventListener('wheel', onWheel, { passive: false });
+        return () => el.removeEventListener('wheel', onWheel);
+    }, []);
 
     const edges = useMemo(() => buildEdgesExport(data, connectionsKey, labelKey), [data, connectionsKey, labelKey]);
     const filteredEdges = useMemo(() => edges.filter(e => e.weight >= minWeight), [edges, minWeight]);
     const positions = useMemo(() => forceLayoutExport(data, filteredEdges, svgW, svgH), [data, filteredEdges]);
-    
-    const degrees = useMemo(() => { 
-        const d = new Array(data.length).fill(0); 
-        filteredEdges.forEach(e => { d[e.source] += e.weight; d[e.target] += e.weight; }); 
-        return d; 
+
+    const degrees = useMemo(() => {
+        const d = new Array(data.length).fill(0);
+        filteredEdges.forEach(e => { d[e.source] += e.weight; d[e.target] += e.weight; });
+        return d;
     }, [filteredEdges, data.length]);
 
     const maxDeg = Math.max(...degrees, 1);
@@ -537,14 +556,20 @@ const App: React.FC = () => {
     return React.createElement('div', { className: "h-full w-full p-6 flex flex-col" }, [
         React.createElement('div', { key: 'hdr', className: "flex justify-between items-center mb-4" }, [
             React.createElement('h3', { className: "text-lg font-bold uppercase opacity-60" }, "Relational Network"),
+            React.createElement('button', { onClick: () => setViewBox({ x: 0, y: 0, w: svgW, h: svgH }), className: "text-[10px] font-bold uppercase p-2 hover:bg-current/10 rounded" }, "Reset View"),
             maxWeight > 1 && React.createElement('div', { className: "flex items-center gap-3 bg-current/5 px-3 py-1 rounded-full" }, [
                 React.createElement('label', { className: "text-[9px] font-black uppercase opacity-50" }, "Min Weight:"),
                 React.createElement('input', { type: "range", min: 1, max: maxWeight, step: 1, value: minWeight, onChange: e => setMinWeight(Number(e.target.value)), className: "w-24 h-1 accent-current" }),
                 React.createElement('span', { className: "text-[10px] font-bold min-w-[12px]" }, minWeight)
             ])
         ]),
-        React.createElement('div', { key: 'svg-cont', className: "flex-1 relative bg-current/[0.02] rounded-3xl border border-current/10 overflow-hidden" },
-            React.createElement('svg', { viewBox: "0 0 " + svgW + " " + svgH, className: "w-full h-full" }, [
+        React.createElement('div', { key: 'svg-cont', ref: containerRef, className: "flex-1 relative bg-current/[0.02] rounded-3xl border border-current/10 overflow-hidden" },
+            React.createElement('svg', { ref: svgRef, viewBox: viewBox.x + " " + viewBox.y + " " + viewBox.w + " " + viewBox.h, className: "w-full h-full touch-none",
+                onMouseDown: e => { setIsPanning(true); panStart.current = { x: e.clientX, y: e.clientY, vx: viewBox.x, vy: viewBox.y }; },
+                onMouseMove: e => { if (!isPanning) return; const dx = (e.clientX - panStart.current.x) * (viewBox.w / svgRef.current.clientWidth); const dy = (e.clientY - panStart.current.y) * (viewBox.h / svgRef.current.clientHeight); setViewBox(v => ({ ...v, x: panStart.current.vx - dx, y: panStart.current.vy - dy })); },
+                onMouseUp: () => setIsPanning(false),
+                onMouseLeave: () => { setIsPanning(false); setHoveredNode(null); }
+            }, [
                 // Edges
                 ...filteredEdges.map((edge, i) => {
                     const isDimmed = hoveredNode !== null && !connectedToHover.has(edge.source) && !connectedToHover.has(edge.target);
@@ -589,7 +614,11 @@ const App: React.FC = () => {
             const imageKey = config.imageKey || 'imageUrl';
             const labelKey = config.labelKey || 'label';
             const descKey = config.descriptionKey || 'description';
-            const items = data.filter(d => d[imageKey]);
+            const selectedIds = config.selectedItemIds;
+            const allImageItems = data.filter(d => d[imageKey]);
+            const items = selectedIds && selectedIds.length > 0
+              ? allImageItems.filter(d => selectedIds.includes(String(d.id)))
+              : allImageItems;
             const [activeIndex, setActiveIndex] = useState(0);
 
             if (items.length === 0) return React.createElement('div', { className: "p-20 text-center opacity-50" }, "No image data found.");
@@ -694,8 +723,8 @@ const App: React.FC = () => {
             if (!hasVideos) return React.createElement('p', { className: "text-base sm:text-lg md:text-xl leading-relaxed whitespace-pre-wrap opacity-90" }, text);
             return React.createElement('div', { className: "space-y-6" }, parts.map((part, i) => {
                 if (part.type === 'video' && part.embedUrl) {
-                    return React.createElement('div', { key: i, className: "relative w-full rounded-xl overflow-hidden shadow-lg", style: { paddingBottom: '56.25%' } },
-                        React.createElement('iframe', { src: part.embedUrl, className: "absolute inset-0 w-full h-full", allow: "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture", allowFullScreen: true, title: "Embedded video" })
+                    return React.createElement('div', { key: i, className: "relative w-full rounded-xl overflow-hidden shadow-lg", style: { paddingBottom: '56.25%', zIndex: 0, isolation: 'isolate' } },
+                        React.createElement('iframe', { src: part.embedUrl, className: "absolute inset-0 w-full h-full", style: { zIndex: 0 }, allow: "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture", allowFullScreen: true, title: "Embedded video" })
                     );
                 }
                 if (part.content.trim()) return React.createElement('p', { key: i, className: "text-base sm:text-lg md:text-xl leading-relaxed whitespace-pre-wrap opacity-90" }, part.content);
@@ -786,7 +815,7 @@ const App: React.FC = () => {
                         if (s.cardType === 'TEXT') {
                             const taCls = s.config.textAlign === 'center' ? 'text-center' : s.config.textAlign === 'right' ? 'text-right' : s.config.textAlign === 'justify' ? 'text-justify' : 'text-left';
                             return React.createElement('div', { key: s.id, ref: el => sectionRefs.current[s.id] = el, 'data-id': s.id, className: "min-h-[60vh] md:min-h-[80vh] flex items-center " + alignCls + " py-10 md:py-20 transition-opacity duration-500 " + (activeId === s.id ? 'opacity-100' : 'md:opacity-20 opacity-100') },
-                                React.createElement('div', { className: "w-full p-6 sm:p-8 md:p-12 rounded-2xl border border-t-4 " + theme.card + " " + theme.cardShadow + " " + taCls, style: { borderTopColor: theme.accentHex } }, [
+                                React.createElement('div', { className: "w-full p-6 sm:p-8 md:p-12 rounded-2xl border border-t-4 " + theme.card + " " + theme.cardShadow + " " + taCls, style: { borderTopColor: theme.accentHex, isolation: 'isolate' } }, [
                                     React.createElement('h2', { key: 'h', className: "text-xl sm:text-2xl md:text-3xl font-bold mb-4 md:mb-6 " + theme.headingColor }, s.title),
                                     renderTextWithEmbeds(s.content)
                                 ])
@@ -803,7 +832,34 @@ const App: React.FC = () => {
                                 React.createElement('div', { className: "w-full h-[60vh] rounded-2xl overflow-hidden border " + theme.card + " " + theme.cardShadow }, renderMobileViz())
                             )
                         ]);
-                    })),
+                    }),
+                    React.createElement('div', { key: 'credits', className: "min-h-[30vh] md:min-h-[50vh] flex flex-col justify-end py-10 md:py-20" },
+                        React.createElement('div', { className: "max-w-lg p-6 sm:p-8 rounded-2xl border " + theme.card + " opacity-80" }, [
+                            React.createElement('div', { key: 'ack', className: "mb-8" }, [
+                                React.createElement('h3', { key: 'h', className: "text-xs font-bold uppercase tracking-[0.2em] mb-4 flex items-center gap-2 opacity-60" }, [
+                                    React.createElement(Lucide.Users, { key: 'i', size: 14 }),
+                                    " Credits & Acknowledgments"
+                                ]),
+                                React.createElement('p', { key: 'p', className: "text-sm leading-relaxed italic" }, config.collaborators || "This project was developed independently using the Polybius Engine.")
+                            ]),
+                            config.bibliography && config.bibliography.length > 0 && React.createElement('div', { key: 'bib' }, [
+                                React.createElement('h3', { key: 'h', className: "text-xs font-bold uppercase tracking-[0.2em] mb-4 flex items-center gap-2 opacity-60" }, [
+                                    React.createElement(Lucide.BookOpen, { key: 'i', size: 14 }),
+                                    " Select Bibliography"
+                                ]),
+                                React.createElement('ul', { key: 'list', className: "space-y-4" },
+                                    config.bibliography.map(function(bib) {
+                                        return React.createElement('li', { key: bib.id, className: "text-sm leading-relaxed" }, [
+                                            bib.text,
+                                            bib.url && React.createElement('a', { key: 'link', href: bib.url, target: "_blank", rel: "noopener noreferrer", className: "inline-flex ml-2 opacity-30 hover:opacity-100 transition-opacity" },
+                                                React.createElement(Lucide.ExternalLink, { size: 12 })
+                                            )
+                                        ]);
+                                    })
+                                )
+                            ])
+                        ])
+                    )),
                     React.createElement('div', { key: 'right', className: "desktop-viz hidden md:block h-screen sticky top-0 transition-all duration-700 " + (isTextActive ? "opacity-0 pointer-events-none" : "opacity-100 w-1/2 pointer-events-auto"), style: isTextActive ? { width: 0, padding: 0 } : undefined },
                         React.createElement('div', { className: "h-full p-8 flex items-center transition-all duration-700 " + vizAlignCls },
                             React.createElement('div', { className: "w-full h-[85vh] rounded-3xl overflow-hidden border relative " + theme.card + " " + theme.cardShadow },
@@ -816,8 +872,9 @@ const App: React.FC = () => {
                 ]),
                 React.createElement('footer', { key: 'foot', className: "py-12 md:py-20 text-center opacity-60 px-4" }, [
                     React.createElement('div', { key: 'line', className: "h-px w-32 mx-auto mb-8 md:mb-12", style: { backgroundColor: theme.accentHex } }),
-                    React.createElement('h2', { key: 'title', className: "text-xl md:text-2xl font-bold" }, config.title),
-                    React.createElement('p', { key: 'pb', className: "text-xs mt-2 uppercase tracking-widest" }, "Powered by Polybius")
+                    React.createElement('h2', { key: 'title', className: "text-xl md:text-2xl font-bold mb-2" }, config.title),
+                    React.createElement('p', { key: 'sub', className: "text-xs sm:text-sm italic opacity-80 mb-8" }, config.subtitle),
+                    React.createElement('div', { key: 'pb', className: "text-[9px] uppercase tracking-tighter opacity-40" }, "Powered by Polybius")
                 ])
             ]);
         };

@@ -320,7 +320,32 @@ const Editor: React.FC<EditorProps> = ({ config, data, onConfigChange, onDataCha
                                   <div><label className="block text-[10px] font-semibold text-zinc-500 mb-1">Size (Z Axis)</label><select value={section.config.zKey || ''} onChange={(e) => updateSectionConfig(section.id, 'zKey', e.target.value)} className="w-full px-2 py-1.5 border border-zinc-200 rounded bg-white text-xs">{dataHeaders.map(h => <option key={h} value={h}>{h}</option>)}</select></div>
                                 </>)}
                               </>)}
-                              {section.cardType === CardType.GALLERY && (<><div><label className="block text-[10px] font-semibold text-zinc-500 mb-1">Image URL Column</label><select value={section.config.imageKey || ''} onChange={(e) => updateSectionConfig(section.id, 'imageKey', e.target.value)} className="w-full px-2 py-1.5 border border-zinc-200 rounded bg-white text-xs">{dataHeaders.map(h => <option key={h} value={h}>{h}</option>)}</select></div><div><label className="block text-[10px] font-semibold text-zinc-500 mb-1">Description Column</label><select value={section.config.descriptionKey || ''} onChange={(e) => updateSectionConfig(section.id, 'descriptionKey', e.target.value)} className="w-full px-2 py-1.5 border border-zinc-200 rounded bg-white text-xs">{dataHeaders.map(h => <option key={h} value={h}>{h}</option>)}</select></div></>)}
+                              {section.cardType === CardType.GALLERY && (<><div><label className="block text-[10px] font-semibold text-zinc-500 mb-1">Image URL Column</label><select value={section.config.imageKey || ''} onChange={(e) => updateSectionConfig(section.id, 'imageKey', e.target.value)} className="w-full px-2 py-1.5 border border-zinc-200 rounded bg-white text-xs">{dataHeaders.map(h => <option key={h} value={h}>{h}</option>)}</select></div><div><label className="block text-[10px] font-semibold text-zinc-500 mb-1">Description Column</label><select value={section.config.descriptionKey || ''} onChange={(e) => updateSectionConfig(section.id, 'descriptionKey', e.target.value)} className="w-full px-2 py-1.5 border border-zinc-200 rounded bg-white text-xs">{dataHeaders.map(h => <option key={h} value={h}>{h}</option>)}</select></div>
+                              <div className="col-span-2 border-t border-zinc-200 pt-3 mt-1">
+                                <label className="block text-[10px] font-semibold text-zinc-500 mb-2">Select Images to Display</label>
+                                <p className="text-[9px] text-zinc-400 mb-2">Leave all unchecked to show every image. Check specific items to limit the gallery.</p>
+                                <div className="max-h-48 overflow-y-auto border border-zinc-100 rounded-lg p-2 space-y-1 bg-zinc-50">
+                                  {data.filter(d => d[section.config.imageKey || 'imageUrl']).map((item) => {
+                                    const itemId = String(item.id);
+                                    const selected: string[] = section.config.selectedItemIds || [];
+                                    const isChecked = selected.includes(itemId);
+                                    return (
+                                      <label key={itemId} className="flex items-center gap-2 px-2 py-1 rounded hover:bg-white cursor-pointer transition-colors">
+                                        <input
+                                          type="checkbox"
+                                          checked={isChecked}
+                                          onChange={() => {
+                                            const next = isChecked ? selected.filter((id: string) => id !== itemId) : [...selected, itemId];
+                                            updateSectionConfig(section.id, 'selectedItemIds', next);
+                                          }}
+                                          className="rounded border-zinc-300 text-indigo-600 focus:ring-indigo-500"
+                                        />
+                                        <span className="text-xs text-zinc-700 truncate">{item[section.config.labelKey || 'label'] || item.id}</span>
+                                      </label>
+                                    );
+                                  })}
+                                </div>
+                              </div></>)}
                               {section.cardType === CardType.IMAGE && (<><div><label className="block text-[10px] font-semibold text-zinc-500 mb-1">Image URL Column</label><select value={section.config.imageKey || ''} onChange={(e) => updateSectionConfig(section.id, 'imageKey', e.target.value)} className="w-full px-2 py-1.5 border border-zinc-200 rounded bg-white text-xs">{dataHeaders.map(h => <option key={h} value={h}>{h}</option>)}</select></div><div><label className="block text-[10px] font-semibold text-zinc-500 mb-1">Description Column</label><select value={section.config.descriptionKey || ''} onChange={(e) => updateSectionConfig(section.id, 'descriptionKey', e.target.value)} className="w-full px-2 py-1.5 border border-zinc-200 rounded bg-white text-xs">{dataHeaders.map(h => <option key={h} value={h}>{h}</option>)}</select></div><div><label className="block text-[10px] font-semibold text-zinc-500 mb-1">Item ID</label><input type="text" value={section.config.itemId ?? ''} onChange={(e) => updateSectionConfig(section.id, 'itemId', e.target.value)} placeholder="e.g. M30" className="w-full px-2 py-1.5 border border-zinc-200 rounded bg-white text-xs" /><p className="text-[9px] text-zinc-400 mt-0.5">Value from the ID column (case-insensitive)</p></div></>)}
                            </div>
                         </div>)}

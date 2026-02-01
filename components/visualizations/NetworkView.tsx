@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef, useCallback } from 'react';
+import React, { useMemo, useState, useRef, useCallback, useEffect } from 'react';
 import { HeritageDataItem } from '../../types';
 
 interface NetworkViewProps {
@@ -118,16 +118,25 @@ const NetworkView: React.FC<NetworkViewProps> = ({ data, config, theme }) => {
     return neighbors;
   }, [hoveredNode, filteredEdges]);
 
-  // Zoom/Pan logic remains largely the same
+  // Zoom/Pan logic — uses native wheel listener to prevent page scroll
   const [viewBox, setViewBox] = useState({ x: 0, y: 0, w: svgWidth, h: svgHeight });
   const [isPanning, setIsPanning] = useState(false);
   const panStart = useRef({ x: 0, y: 0, vx: 0, vy: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
 
-  const handleWheel = (e: React.WheelEvent) => {
-    const scale = e.deltaY > 0 ? 1.1 : 0.9;
-    setViewBox(v => ({ x: v.x + (v.w - v.w * scale) / 2, y: v.y + (v.h - v.h * scale) / 2, w: v.w * scale, h: v.h * scale }));
-  };
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const scale = e.deltaY > 0 ? 1.1 : 0.9;
+      setViewBox(v => ({ x: v.x + (v.w - v.w * scale) / 2, y: v.y + (v.h - v.h * scale) / 2, w: v.w * scale, h: v.h * scale }));
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, []);
 
   return (
     <div className="h-full w-full flex flex-col p-4">
@@ -139,12 +148,11 @@ const NetworkView: React.FC<NetworkViewProps> = ({ data, config, theme }) => {
         <button onClick={() => setViewBox({ x: 0, y: 0, w: svgWidth, h: svgHeight })} className="text-[10px] font-bold uppercase p-2 hover:bg-current/10 rounded">Reset View</button>
       </div>
 
-      <div className="flex-1 rounded-3xl border border-current/10 bg-current/[0.02] overflow-hidden relative">
+      <div ref={containerRef} className="flex-1 rounded-3xl border border-current/10 bg-current/[0.02] overflow-hidden relative">
         <svg
           ref={svgRef}
           viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`}
           className="w-full h-full touch-none"
-          onWheel={handleWheel}
           onMouseDown={e => { setIsPanning(true); panStart.current = { x: e.clientX, y: e.clientY, vx: viewBox.x, vy: viewBox.y }; }}
           onMouseMove={e => {
             if (!isPanning) return;
